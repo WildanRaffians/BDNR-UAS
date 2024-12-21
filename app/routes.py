@@ -1,39 +1,58 @@
 # API endpoint
 from flask import Blueprint, jsonify, request
 from bson import ObjectId
-from app.models import get_all_items, get_item_by_id, add_item, update_item, delete_item
+from database import mongo  # Pastikan impor ini sesuai dengan struktur folder Anda
 
-# Contoh : 
-# routes = Blueprint("routes", __name__)
+routes = Blueprint("routes", __name__)
 
-# @routes.route("/items", methods=["GET"])
-# def fetch_items():
-#     items = get_all_items()
-#     for item in items:
-#         item["_id"] = str(item["_id"])
-#     return jsonify(items)
+@routes.route("/", methods=["GET"])
+def home():
+    """Halaman utama."""
+    return jsonify({"message": "Welcome to the Water API!"})
 
-# @routes.route("/item/<string:item_id>", methods=["GET"])
-# def fetch_item(item_id):
-#     item = get_item_by_id(ObjectId(item_id))
-#     if item:
-#         item["_id"] = str(item["_id"])
-#         return jsonify(item)
-#     return jsonify({"error": "Item not found"}), 404
 
-# @routes.route("/item", methods=["POST"])
-# def create_item():
-#     data = request.json
-#     result = add_item(data)
-#     return jsonify({"_id": str(result.inserted_id)}), 201
+@routes.route("/upaya", methods=["GET"])
+def get_all_upaya():
+    """Mengambil semua data upaya."""
+    upaya = list(mongo.upaya_pelestarian_sumber_air.find())  # Gunakan 'mongo.upaya_pelestarian_sumber_air'
+    for u in upaya:
+        u["_id"] = str(u["_id"])  # Ubah ObjectId ke string untuk JSON
+    return jsonify(upaya)
 
-# @routes.route("/item/<string:item_id>", methods=["PUT"])
-# def update_item_details(item_id):
-#     data = request.json
-#     result = update_item(ObjectId(item_id), data)
-#     return jsonify({"modified_count": result.modified_count})
+# Rute lainnya tetap sama...
 
-# @routes.route("/item/<string:item_id>", methods=["DELETE"])
-# def delete_item_details(item_id):
-#     result = delete_item(ObjectId(item_id))
-#     return jsonify({"deleted_count": result.deleted_count})
+
+@routes.route("/upaya/<int:id_upaya>", methods=["GET"])
+def get_upaya_by_id(id_upaya):
+    """Mengambil data upaya berdasarkan id_upaya_ketersediaan_air."""
+    upaya = mongo.db.upaya_pelestarian_sumber_air.find_one({"id_upaya_ketersediaan_air": id_upaya})
+    if upaya:
+        upaya["_id"] = str(upaya["_id"])
+        return jsonify(upaya)
+    return jsonify({"error": "Upaya not found"}), 404
+
+@routes.route("/upaya", methods=["POST"])
+def create_upaya():
+    """Menambahkan data upaya baru."""
+    data = request.json
+    result = mongo.db.upaya_pelestarian_sumber_air.insert_one(data)
+    return jsonify({"_id": str(result.inserted_id)}), 201
+
+@routes.route("/upaya/<int:id_upaya>", methods=["PUT"])
+def update_upaya(id_upaya):
+    """Memperbarui data upaya."""
+    data = request.json
+    result = mongo.db.upaya_pelestarian_sumber_air.update_one(
+        {"id_upaya_ketersediaan_air": id_upaya}, {"$set": data}
+    )
+    if result.matched_count > 0:
+        return jsonify({"message": "Upaya updated successfully"}), 200
+    return jsonify({"error": "Upaya not found"}), 404
+
+@routes.route("/upaya/<int:id_upaya>", methods=["DELETE"])
+def delete_upaya(id_upaya):
+    """Menghapus data upaya berdasarkan id_upaya_ketersediaan_air."""
+    result = mongo.db.upaya_pelestarian_sumber_air.delete_one({"id_upaya_ketersediaan_air": id_upaya})
+    if result.deleted_count > 0:
+        return jsonify({"message": "Upaya deleted successfully"}), 200
+    return jsonify({"error": "Upaya not found"}), 404

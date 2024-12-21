@@ -1,12 +1,7 @@
-# Untuk Run API
 from flask import Flask
-from app.routes import routes
-from app.database import init_db
+from routes import routes
 
 app = Flask(__name__)
-
-# Inisialisasi database
-init_db(app)
 
 # Register blueprint
 app.register_blueprint(routes)

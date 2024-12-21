@@ -1,8 +1,10 @@
-# Menghubungkan ke DB
-from flask_pymongo import PyMongo
+from pymongo import MongoClient
 
-mongo = PyMongo()
+# Konfigurasi koneksi ke database MongoDB
+client = MongoClient("mongodb://localhost:27017/")
 
-def init_db(app):
-    app.config["MONGO_URI"] = "mongodb://localhost:27017/db_water"
-    mongo.init_app(app)
+# Inisialisasi database
+db = client["db_water"]
+
+# Tambahkan variabel 'mongo' agar dapat diakses oleh modul lain
+mongo = db

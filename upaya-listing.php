@@ -1,8 +1,29 @@
 <?php
-    include('function.php');
-    $listUpaya = readUpaya();
-    $listSumberAirUpaya = readSumberAirUpaya();
-    
+    // include('function.php');
+    // $listUpaya = readUpaya();
+    // $listSumberAirUpaya = readSumberAirUpaya();
+
+    $url = "http://localhost:5000/upaya";
+
+    // Inisialisasi cURL
+    $ch = curl_init($url);
+
+    // Konfigurasi cURL
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+    // Kirim request dan ambil respons
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    // Decode respons JSON
+    $listUpaya = json_decode($response, true);
+
+    // Tampilkan data
+    // foreach ($data as $upaya) {
+    //     echo "ID: " . $upaya["id_upaya_ketersediaan_air"] . "<br>";
+    //     echo "Nama Upaya: " . $upaya["nama_upaya"] . "<br><br>";
+    // }
+
 ?>
 
 
@@ -137,13 +158,13 @@ https://templatemo.com/tm-590-topic-listing
                                             <h6>Sumber Air yang Membutuhkan:</h6>
                                             <p>
                                             <?php
-                                                foreach($listSumberAirUpaya as $sumberAirUpaya){
-                                                    if($sumberAirUpaya['id_upaya_peningkatan_ketersediaan_air'] == $upaya['id_upaya_ketersediaan_air']){
+                                                // foreach($listSumberAirUpaya as $sumberAirUpaya){
+                                                //     if($sumberAirUpaya['id_upaya_peningkatan_ketersediaan_air'] == $upaya['id_upaya_ketersediaan_air']){
                                             ?>
-                                                        <a href="topics-detail.php?id_sumber_air=<?=$sumberAirUpaya['id_sumber_air']?>" style="padding-top: 5px;"><button type="button" class="btn btn-info" ><?=$sumberAirUpaya['nama_sumber_air']?></button></a>
+                                                        <!-- <a href="topics-detail.php?id_sumber_air=<?=$sumberAirUpaya['id_sumber_air']?>" style="padding-top: 5px;"><button type="button" class="btn btn-info" ><?=$sumberAirUpaya['nama_sumber_air']?></button></a> -->
                                             <?php
-                                                }
-                                            }
+                                            //     }
+                                            // }
                                             ?>
                                             </p>                 
                                         </div>
