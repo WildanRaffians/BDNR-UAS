@@ -11,6 +11,8 @@ def home():
     return jsonify({"message": "Welcome to the Water API!"})
 
 
+# UPAYA ----------------------------------------------------------------------------------------------
+
 @routes.route("/upaya", methods=["GET"])
 def get_all_upaya():
     """Mengambil semua data upaya."""
@@ -18,9 +20,6 @@ def get_all_upaya():
     for u in upaya:
         u["_id"] = str(u["_id"])  # Ubah ObjectId ke string untuk JSON
     return jsonify(upaya)
-
-# Rute lainnya tetap sama...
-
 
 @routes.route("/upaya/<int:id_upaya>", methods=["GET"])
 def get_upaya_by_id(id_upaya):
