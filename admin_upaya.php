@@ -1,11 +1,73 @@
 <?php
     session_start();
-    if(!isset($_SESSION["login"])) {
+    if (!isset($_SESSION["login"])) {
         header("Location: login.php");
+        exit;
     }
-    include('function.php');
-    $listUpaya = readUpaya();
 
+    // URL API untuk mengambil data dan operasi CRUD
+    $urlUpaya = "http://localhost:5000/api/upaya"; // Endpoint GET all
+    $urlUpayaCreate = "http://localhost:5000/api/upaya-create"; // Endpoint POST
+    $urlUpayaUpdate = "http://localhost:5000/api/upaya-update"; // Endpoint PUT
+    $urlUpayaDelete = "http://localhost:5000/api/upaya-delete"; // Endpoint DELETE
+
+    // Mengambil data Upaya dari API
+    $listUpaya = json_decode(file_get_contents($urlUpaya), true);
+
+    // Fungsi CREATE (POST) Upaya
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_upaya'])) {
+        $namaUpaya = $_POST['nama_upaya'];
+        $data = ["nama_upaya" => $namaUpaya];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ],
+        ];
+        $context  = stream_context_create($options);
+        file_get_contents($urlUpayaCreate, false, $context);
+
+        header("Location: admin_upaya.php");
+        exit;
+    }
+
+    // Fungsi UPDATE (PUT) Upaya
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_upaya'])) {
+        $idUpaya = $_POST['id_upaya'];
+        $namaUpaya = $_POST['nama_upaya'];
+        $data = ["nama_upaya" => $namaUpaya];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'PUT',
+                'content' => json_encode($data),
+            ],
+        ];
+        $context  = stream_context_create($options);
+        file_get_contents("$urlUpayaUpdate/$idUpaya", false, $context);
+
+        header("Location: admin_upaya.php");
+        exit;
+    }
+
+    // Fungsi DELETE (DELETE) Upaya
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_upaya'])) {
+        $idUpaya = $_POST['id_upaya'];
+
+        $options = [
+            'http' => [
+                'method' => 'DELETE',
+            ],
+        ];
+        $context  = stream_context_create($options);
+        file_get_contents("$urlUpayaDelete/$idUpaya", false, $context);
+
+        header("Location: admin_upaya.php");
+        exit;
+    }
 ?>
 
 <!doctype html>
@@ -21,40 +83,23 @@
 
         <!-- CSS FILES -->        
         <link rel="preconnect" href="https://fonts.googleapis.com">
-        
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans&display=swap" rel="stylesheet">
-                        
         <link href="css/bootstrap.min.css" rel="stylesheet">
-
         <link href="css/bootstrap-icons.css" rel="stylesheet">
-
         <link href="css/templatemo-topic-listing.css" rel="stylesheet">
-<!--
-
-TemplateMo 590 topic listing
-
-https://templatemo.com/tm-590-topic-listing
-
--->
     </head>
     
     <body id="top">
 
         <main>
-
-        <nav class="navbar navbar-expand-lg">
+            <nav class="navbar navbar-expand-lg">
                 <div class="container">
                     <a class="navbar-brand" href="index.php">
                         <i class="bi-back"></i>
                         <span>HydroCulus</span>
                     </a>
 
-                    <div class="d-lg-none ms-auto me-4">
-                        <a href="#top" class="navbar-icon bi-person smoothscroll"></a>
-                    </div>
-    
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -66,17 +111,13 @@ https://templatemo.com/tm-590-topic-listing
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link " href="topics-listing.php" >List Sumber Air</a>
+                                <a class="nav-link" href="topics-listing.php">List Sumber Air</a>
                             </li>
 
-                            <li class="nav-item" >
-                                <a class="nav-link"  href="upaya-listing.php" >List Upaya Pelestarian</a>
+                            <li class="nav-item">
+                                <a class="nav-link" href="upaya-listing.php">List Upaya Pelestarian</a>
                             </li>
                         </ul>
-
-                        <div class="d-none d-lg-block">
-                            <a href="login.php" class="navbar-icon bi-person smoothscroll"></a>
-                        </div>
                     </div>
                 </div>
             </nav>
@@ -110,37 +151,63 @@ https://templatemo.com/tm-590-topic-listing
 
             <section class="topics-detail-section section-padding" id="topics-detail">
                 <div class="container">
-                <a type="button" class="btn btn-secondary btn-sm" href="admin.php#topics-detail">Tabel Sumber Air</a>
+                    <a type="button" class="btn btn-secondary btn-sm" href="admin.php#topics-detail">Tabel Sumber Air</a>
                     <a type="button" class="btn btn-primary btn-sm" href="admin_upaya.php#topics-detail">Tabel Upaya</a>
-                <br><br><br>
-                <h1>Tabel Upaya Pelestarian Sumber Air</h1><br><br>
-                <a type="button" class="btn btn-outline-primary" href="addUpaya.php#form">Tambah Data</a>
-                <table class="table caption-top">
-                    <caption>List of upaya</caption>
-                    <thead>
-                        <tr>
-                        <th scope="col"></th>
-                        <th scope="col">Nama Upaya</th>
-                        <th scope="col">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                            $cacah = 1;
-                            foreach($listUpaya as $upaya) {
-                        ?>
-                        <tr>
-                        <th scope="row"><?=$cacah?></th>
-                        <td><?=$upaya['nama_upaya']?></td>
-                        <td><a type="button" class="btn btn-outline-success" href="updateUpaya.php?id_upaya_ketersediaan_air=<?=$upaya['id_upaya_ketersediaan_air']?>">Update</a> 
-                        <a type="button" class="btn btn-outline-danger" onclick="return confirm('Yakin Hapus?')" href="deleteUpaya.php?id=<?=$upaya['id_upaya_ketersediaan_air']?>">Delete</a>
-                        </td>
-                        </tr>
-                        <?php
-                                $cacah++;
-                            }
-                        ?>
-                    </tbody>
+                    <br><br><br>
+                    <h1>Tabel Upaya Pelestarian Sumber Air</h1><br><br>
+                    <form method="POST" id="dynamic-form">
+                        <h5 id="form-title">Tambah Upaya</h5>
+                        <input type="hidden" id="id_upaya" name="id_upaya">
+                        <div class="mb-3">
+                            <textarea 
+                                id="nama_upaya" 
+                                name="nama_upaya" 
+                                class="form-control" 
+                                placeholder="Masukkan deskripsi upaya pelestarian..." 
+                                rows="5" 
+                                required
+                            ></textarea>
+                        </div>
+                        <button type="submit" name="create_upaya" id="form-button" class="btn btn-primary">Tambah</button>
+                        <button type="button" id="cancel-button" class="btn btn-secondary" onclick="resetForm()" style="display: none;">Batal</button>
+                    </form>
+                    <br><br>
+                    <table class="table caption-top">
+                        <caption>List of upaya</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">No</th>
+                                <th scope="col">Nama Upaya</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                                $cacah = 1;
+                                foreach ($listUpaya as $upaya) {
+                            ?>
+                            <tr>
+                                <th scope="row"><?=$cacah?></th>
+                                <td><?=$upaya['nama_upaya']?></td>
+                                <td>
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-outline-success" 
+                                        onclick="editData('<?=$upaya['_id']?>', '<?=$upaya['nama_upaya']?>')"
+                                    >
+                                        Update
+                                    </button>
+                                    <form method="POST" class="d-inline">
+                                        <input type="hidden" name="id_upaya" value="<?=$upaya['_id']?>">
+                                        <button type="submit" name="delete_upaya" class="btn btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <?php
+                                    $cacah++;
+                                }
+                            ?>
+                        </tbody>
                     </table>
                 </div>
             </section>
@@ -220,6 +287,45 @@ https://templatemo.com/tm-590-topic-listing
         </footer>
 
         <!-- JAVASCRIPT FILES -->
+        <script>
+        function editData(id, nama) {
+            // Ubah judul formulir
+            document.getElementById('form-title').innerText = 'Update Upaya';
+
+            // Isi input dengan data
+            document.getElementById('id_upaya').value = id;
+            document.getElementById('nama_upaya').value = nama;
+
+            // Ubah tombol menjadi tombol update
+            const formButton = document.getElementById('form-button');
+            formButton.innerText = 'Update';
+            formButton.name = 'update_upaya';
+            formButton.classList.remove('btn-primary');
+            formButton.classList.add('btn-warning');
+
+            // Tampilkan tombol batal
+            document.getElementById('cancel-button').style.display = 'inline-block';
+        }
+
+        function resetForm() {
+            // Reset judul formulir
+            document.getElementById('form-title').innerText = 'Tambah Upaya';
+
+            // Kosongkan input
+            document.getElementById('id_upaya').value = '';
+            document.getElementById('nama_upaya').value = '';
+
+            // Ubah tombol menjadi tombol tambah
+            const formButton = document.getElementById('form-button');
+            formButton.innerText = 'Tambah';
+            formButton.name = 'create_upaya';
+            formButton.classList.remove('btn-warning');
+            formButton.classList.add('btn-primary');
+
+            // Sembunyikan tombol batal
+            document.getElementById('cancel-button').style.display = 'none';
+        }
+        </script>
         <script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.bundle.min.js"></script>
         <script src="js/jquery.sticky.js"></script>
