@@ -121,7 +121,7 @@ def get_sumber_air_lookup():
             # Join ke jenis_sumber_air
             {
                 "$lookup": {
-                    "from": "jenis-sumber_air",
+                    "from": "jenis_sumber_air",
                     "localField": "id_jenis_sumber_air",
                     "foreignField": "_id",
                     "as": "jenis_sumber_air"
@@ -136,14 +136,13 @@ def get_sumber_air_lookup():
                     "as": "kabupaten"
                 }
             },
-            # Unwind kabupaten untuk mempermudah akses field
             {
                 "$unwind": {
                     "path": "$kabupaten",
                     "preserveNullAndEmptyArrays": True
                 }
             },
-            # Join ke provinces (provinsi) melalui kabupaten.province_id
+            # Join ke provinces (provinsi)
             {
                 "$lookup": {
                     "from": "provinces",
@@ -152,7 +151,6 @@ def get_sumber_air_lookup():
                     "as": "provinsi"
                 }
             },
-            # Unwind provinsi untuk mempermudah akses field
             {
                 "$unwind": {
                     "path": "$provinsi",
@@ -168,7 +166,7 @@ def get_sumber_air_lookup():
                     "as": "upaya_peningkatan"
                 }
             },
-            # Exclude timestamps jika diperlukan
+            # Exclude timestamps
             {
                 "$project": {
                     "createdAt": 0,
@@ -182,22 +180,21 @@ def get_sumber_air_lookup():
 
         # Konversi ObjectId dan nested ID ke string
         for sumber in sumbers:
-            sumber['_id'] = str(sumber['_id'])  # Konversi _id
-            if "id_jenis_sumber_air" in sumber:
-                sumber["id_jenis_sumber_air"] = str(sumber["id_jenis_sumber_air"])  # Konversi id_jenis_sumber_air
-            if 'upaya_peningkatan' in sumber:
-                sumber['upaya_peningkatan'] = [str(upaya) for upaya in sumber['upaya_peningkatan']]  # Konversi upaya_peningkatan
-            if "kabupaten" in sumber and sumber["kabupaten"]:
-                sumber["kabupaten"]["_id"] = str(sumber["kabupaten"]["_id"])
-            if "provinsi" in sumber and sumber["provinsi"]:
-                sumber["provinsi"]["_id"] = str(sumber["provinsi"]["_id"])
-            if "jenis_sumber_air" in sumber["jenis_sumber_air"]:
-                sumber["jenis_sumber_air"]["_id"] = str(sumber["jenis_sumber_air"]["_id"]) # Konversi id_jen
-            if "upaya_peningkatan" in sumber["upaya_peningkatan"]:
-                sumber["upaya_peningkatan"]["_id"] = str(sumber["upaya_peningkatan"]["_id"]) # Konversi id_jen
+            sumber['_id'] = str(sumber.get('_id', ''))
+            sumber['id_jenis_sumber_air'] = str(sumber.get('id_jenis_sumber_air', ''))
+            if 'upaya_peningkatan' in sumber and isinstance(sumber['upaya_peningkatan'], list):
+                sumber['upaya_peningkatan'] = [str(upaya.get('nama_upaya')) for upaya in sumber['upaya_peningkatan'] if isinstance(upaya, dict)]
+            if 'kabupaten' in sumber and sumber['kabupaten']:
+                sumber['kabupaten']['_id'] = str(sumber['kabupaten'].get('_id', ''))
+            if 'provinsi' in sumber and sumber['provinsi']:
+                sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
+            if 'jenis_sumber_air' in sumber and isinstance(sumber['jenis_sumber_air'], list) and sumber['jenis_sumber_air']:
+                sumber['jenis_sumber_air'][0]['_id'] = str(sumber['jenis_sumber_air'][0].get('_id', ''))
+
         return jsonify(sumbers), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 # READ (GET by ID) - Mendapatkan data berdasarkan ID
