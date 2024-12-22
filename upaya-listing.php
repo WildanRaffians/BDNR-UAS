@@ -1,13 +1,67 @@
 <?php
-    // URL API untuk mengambil data
-    $urlUpaya = "http://localhost:5000/api/upaya"; // Ganti dengan URL endpoint API Anda
-    // $urlSumberAirUpaya = "http://localhost:5000/api/sumber-air-upaya"; // Tambahkan endpoint sumber air jika ada
-    
+    // URL API untuk mengambil data dan operasi CRUD
+    $urlUpaya = "http://localhost:5000/api/upaya"; // Endpoint GET all
+    $urlUpayaCreate = "http://localhost:5000/api/upaya-create"; // Endpoint POST
+    $urlUpayaUpdate = "http://localhost:5000/api/upaya-update"; // Endpoint PUT
+    $urlUpayaDelete = "http://localhost:5000/api/upaya-delete"; // Endpoint DELETE
+
     // Mengambil data Upaya dari API
     $listUpaya = json_decode(file_get_contents($urlUpaya), true);
 
-    // Mengambil data Sumber Air Upaya dari API
-    // $listSumberAirUpaya = json_decode(file_get_contents($urlSumberAirUpaya), true);
+    // Fungsi CREATE (POST) Upaya
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_upaya'])) {
+        $namaUpaya = $_POST['nama_upaya'];
+        $data = ["nama_upaya" => $namaUpaya];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ],
+        ];
+        $context  = stream_context_create($options);
+        file_get_contents($urlUpayaCreate, false, $context);
+
+        header("Location: upaya-listing.php");
+        exit;
+    }
+
+    // Fungsi UPDATE (PUT) Upaya
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_upaya'])) {
+        $idUpaya = $_POST['id_upaya'];
+        $namaUpaya = $_POST['nama_upaya'];
+        $data = ["nama_upaya" => $namaUpaya];
+
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'PUT',
+                'content' => json_encode($data),
+            ],
+        ];
+        $context  = stream_context_create($options);
+        file_get_contents("$urlUpayaUpdate/$idUpaya", false, $context);
+
+        header("Location: upaya-listing.php");
+        exit;
+    }
+
+    // Fungsi DELETE (DELETE) Upaya
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_upaya'])) {
+        $idUpaya = $_POST['id_upaya'];
+
+        $options = [
+            'http' => [
+                'method' => 'DELETE',
+            ],
+        ];
+        $context  = stream_context_create($options);
+        file_get_contents("$urlUpayaDelete/$idUpaya", false, $context);
+
+        header("Location: upaya-listing.php");
+        exit;
+    }
 ?>
 
 <!doctype html>
@@ -78,33 +132,54 @@
                         </div>
 
                         <div class="col-lg-8 col-12 mt-3 mx-auto">
+                            <!-- Form Tambah/Update Upaya -->
+                            <div class="mt-5">
+                                <h5 id="form-title">Tambah Upaya</h5>
+                                <form method="POST" id="dynamic-form">
+                                    <input type="hidden" id="id_upaya" name="id_upaya">
+                                    <div class="mb-3">
+                                        <textarea 
+                                            id="nama_upaya" 
+                                            name="nama_upaya" 
+                                            class="form-control" 
+                                            placeholder="Masukkan deskripsi upaya pelestarian..." 
+                                            rows="5" 
+                                            required
+                                        ></textarea>
+                                    </div>
+                                    <button type="submit" name="create_upaya" id="form-button" class="btn btn-primary">Tambah</button>
+                                    <button type="button" id="cancel-button" class="btn btn-secondary" onclick="resetForm()" style="display: none;">Batal</button>
+                                </form>
+                            </div><br><br>
+
                             <?php
                             if (!empty($listUpaya)) {
-                                $cacah = 0;
                                 foreach ($listUpaya as $upaya) {
                                     ?>
                                     <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
                                         <div class="d-flex">
-                                            <span class="badge bg-design rounded-pill"><?= ++$cacah ?></span>
                                             <div class="custom-block-topics-listing-info d-flex">
                                                 <div>
                                                     <h5 class="mb-2"><?= htmlspecialchars($upaya['nama_upaya']) ?></h5>
-                                                    <h6>Sumber Air yang Membutuhkan:</h6>
-                                                    <p>
-                                                        <?php
-                                                        if (!empty($listSumberAirUpaya)) {
-                                                            foreach ($listSumberAirUpaya as $sumberAirUpaya) {
-                                                                if ($sumberAirUpaya['id_upaya_peningkatan_ketersediaan_air'] == $upaya['id_upaya_ketersediaan_air']) {
-                                                                    ?>
-                                                                    <a href="topics-detail.php?id_sumber_air=<?= htmlspecialchars($sumberAirUpaya['id_sumber_air']) ?>" style="padding-top: 5px;">
-                                                                        <button type="button" class="btn btn-info"><?= htmlspecialchars($sumberAirUpaya['nama_sumber_air']) ?></button>
-                                                                    </a>
-                                                                    <?php
-                                                                }
-                                                            }
-                                                        }
-                                                        ?>
-                                                    </p>                 
+                                                    <form 
+                                                        method="POST" 
+                                                        class="d-inline"
+                                                        onsubmit="return false;" 
+                                                    >
+                                                        <button 
+                                                            type="button" 
+                                                            class="btn btn-warning" 
+                                                            onclick="editData('<?= htmlspecialchars($upaya['_id']) ?>', '<?= htmlspecialchars($upaya['nama_upaya']) ?>')"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                    </form>
+
+
+                                                    <form method="POST" class="d-inline">
+                                                        <input type="hidden" name="id_upaya" value="<?= htmlspecialchars($upaya['_id']) ?>">
+                                                        <button type="submit" name="delete_upaya" class="btn btn-danger">Hapus</button>
+                                                    </form>
                                                 </div>
                                             </div>
                                         </div>
@@ -115,6 +190,7 @@
                                 echo "<p class='text-center'>Tidak ada data upaya pelestarian yang tersedia.</p>";
                             }
                             ?>
+
                         </div>
                     </div>
                 </div>
@@ -144,6 +220,46 @@
         </footer>
 
         <!-- JAVASCRIPT FILES -->
+        <script>
+        function editData(id, nama) {
+            // Ubah judul formulir
+            document.getElementById('form-title').innerText = 'Update Upaya';
+
+            // Isi input dengan data
+            document.getElementById('id_upaya').value = id;
+            document.getElementById('nama_upaya').value = nama;
+
+            // Ubah tombol menjadi tombol update
+            const formButton = document.getElementById('form-button');
+            formButton.innerText = 'Update';
+            formButton.name = 'update_upaya';
+            formButton.classList.remove('btn-primary');
+            formButton.classList.add('btn-warning');
+
+            // Tampilkan tombol batal
+            document.getElementById('cancel-button').style.display = 'inline-block';
+        }
+
+        function resetForm() {
+            // Reset judul formulir
+            document.getElementById('form-title').innerText = 'Tambah Upaya';
+
+            // Kosongkan input
+            document.getElementById('id_upaya').value = '';
+            document.getElementById('nama_upaya').value = '';
+
+            // Ubah tombol menjadi tombol tambah
+            const formButton = document.getElementById('form-button');
+            formButton.innerText = 'Tambah';
+            formButton.name = 'create_upaya';
+            formButton.classList.remove('btn-warning');
+            formButton.classList.add('btn-primary');
+
+            // Sembunyikan tombol batal
+            document.getElementById('cancel-button').style.display = 'none';
+        }
+        </script>
+
         <script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.bundle.min.js"></script>
         <script src="js/jquery.sticky.js"></script>
