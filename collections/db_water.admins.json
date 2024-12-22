@@ -1,0 +1,28 @@
+[{
+  "_id": {
+    "$oid": "6766d9d01f686546f26c1ff2"
+  },
+  "username": "jidan",
+  "password": "$argon2i$v=19$m=65536,t=4,p=1$NUdvL2ZkY3pOWERqazZKRQ$FVSZsWGPJwVm4yqQ3JZqWMS5HGAazS2GXpR/Q0laLwA"
+},
+{
+  "_id": {
+    "$oid": "6766d9d01f686546f26c1ff3"
+  },
+  "username": "wildan",
+  "password": "$argon2i$v=19$m=65536,t=4,p=1$RWQ1MkJBaXNkL0psSWRVNw$h3Or1UEbeDIfLrtnj2jUiBFb0ng49Zhddk85dxhyEeU"
+},
+{
+  "_id": {
+    "$oid": "6766d9d01f686546f26c1ff4"
+  },
+  "username": "adrian",
+  "password": "$argon2i$v=19$m=65536,t=4,p=1$NUVMRmFHZmNqU2lXdnExLw$SRu13o30z+Ujcu2DNuDnUBnCIF6u6gHzbyXikqm2pgY"
+},
+{
+  "_id": {
+    "$oid": "6766d9d01f686546f26c1ff5"
+  },
+  "username": "shidiq",
+  "password": "$argon2i$v=19$m=65536,t=4,p=1$d2dvZ2ZEb29xQU43MEtuTw$g2OQcyDCM0GIFpRXGZxonGhokc+YMuoufEE27zz4nOM"
+}]

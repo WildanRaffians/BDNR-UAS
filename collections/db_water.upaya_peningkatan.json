@@ -1,0 +1,42 @@
+[{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1feb"
+  },
+  "nama_upaya": "Memberikan kesadaran terhadap masyarakat tentang arti lingkungan hidup sehingga manusia lebih mencintai lingkungan hidupnya."
+},
+{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1fec"
+  },
+  "nama_upaya": "Pengawasan terhadap penggunaan jenis-jenis zat kimia dan pestisida karena dapat menimbulkan pencemaran air."
+},
+{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1fed"
+  },
+  "nama_upaya": "Memperluas gerakan penghijauan."
+},
+{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1fee"
+  },
+  "nama_upaya": "Menempatkan daerah industri atau tempat-tempat pabrik jauh dari sekitar daerah perumahan-pemukiman."
+},
+{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1fef"
+  },
+  "nama_upaya": "Keamanan terhadap air minum harus mendapat perhatian yang khusus, baik dari pemerintah maupun kita sebagai warga masyarakat."
+},
+{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1ff0"
+  },
+  "nama_upaya": "Menggunakan air bersih dengan bijaksana atau seperlunya saja."
+},
+{
+  "_id": {
+    "$oid": "6766d9871f686546f26c1ff1"
+  },
+  "nama_upaya": "Tidak membuang sampah sembarangan."
+}]

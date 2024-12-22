@@ -5,7 +5,8 @@ from database import mongo
 from models import Upaya
 from uuid import UUID
 import uuid
-from bson.objectid import ObjectId 
+from bson.objectid import ObjectId
+from bson.errors import InvalidId
 import logging  # Tambahkan ini untuk menggunakan modul logging
 
 # Konfigurasi logging
@@ -198,16 +199,99 @@ def get_sumber_air_lookup():
 
 
 # READ (GET by ID) - Mendapatkan data berdasarkan ID
-@routes.route('/api/sumber_air/<string:id>', methods=['GET'])
-def get_sumber_air_by_id(id):
+@routes.route('/api/sumber_air_lookup/<id>', methods=['GET'])
+def get_sumber_air_lookup_by_id(id):
     try:
-        object_id = ObjectId(id)
-    except Exception:
-        return jsonify({"error": "Invalid ID format"}), 400
+        # Validasi apakah id valid sebagai ObjectId
+        try:
+            object_id = ObjectId(id)
+        except InvalidId:
+            return jsonify({"error": "Invalid ID format"}), 400
 
-    sumber_air = mongo.sumber_air.find_one({"_id": object_id}, {"createdAt": 0, "updatedAt": 0})
-    if not sumber_air:
-        return jsonify({"error": "sumber_air not found"}), 404
+        pipeline = [
+            # Filter by id
+            {
+                "$match": {
+                    "_id": object_id
+                }
+            },
+            # Join ke jenis_sumber_air
+            {
+                "$lookup": {
+                    "from": "jenis_sumber_air",
+                    "localField": "id_jenis_sumber_air",
+                    "foreignField": "_id",
+                    "as": "jenis_sumber_air"
+                }
+            },
+            # Join ke regencies (kabupaten)
+            {
+                "$lookup": {
+                    "from": "regencies",
+                    "localField": "id_kabupaten",
+                    "foreignField": "id_regency",
+                    "as": "kabupaten"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$kabupaten",
+                    "preserveNullAndEmptyArrays": True
+                }
+            },
+            # Join ke provinces (provinsi)
+            {
+                "$lookup": {
+                    "from": "provinces",
+                    "localField": "kabupaten.province_id",
+                    "foreignField": "id_province",
+                    "as": "provinsi"
+                }
+            },
+            {
+                "$unwind": {
+                    "path": "$provinsi",
+                    "preserveNullAndEmptyArrays": True
+                }
+            },
+            # Join ke upaya peningkatan
+            {
+                "$lookup": {
+                    "from": "upaya_peningkatan",
+                    "localField": "upaya_peningkatan",
+                    "foreignField": "_id",
+                    "as": "upaya_peningkatan"
+                }
+            },
+            # Exclude timestamps
+            {
+                "$project": {
+                    "createdAt": 0,
+                    "updatedAt": 0
+                }
+            }
+        ]
 
-    sumber_air['_id'] = str(sumber_air['_id'])  # Konversi ObjectId ke string untuk JSON
-    return jsonify(sumber_air), 200
+        # Jalankan pipeline
+        sumbers = list(mongo.sumber_air.aggregate(pipeline))
+
+        if not sumbers:
+            return jsonify({"error": "Data not found"}), 404
+
+        sumber = sumbers[0]  # Ambil dokumen pertama karena hanya ada satu hasil
+
+        # Konversi ObjectId dan nested ID ke string
+        sumber['_id'] = str(sumber.get('_id', ''))
+        sumber['id_jenis_sumber_air'] = str(sumber.get('id_jenis_sumber_air', ''))
+        if 'upaya_peningkatan' in sumber and isinstance(sumber['upaya_peningkatan'], list):
+            sumber['upaya_peningkatan'] = [str(upaya.get('nama_upaya')) for upaya in sumber['upaya_peningkatan'] if isinstance(upaya, dict)]
+        if 'kabupaten' in sumber and sumber['kabupaten']:
+            sumber['kabupaten']['_id'] = str(sumber['kabupaten'].get('_id', ''))
+        if 'provinsi' in sumber and sumber['provinsi']:
+            sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
+        if 'jenis_sumber_air' in sumber and isinstance(sumber['jenis_sumber_air'], list) and sumber['jenis_sumber_air']:
+            sumber['jenis_sumber_air'][0]['_id'] = str(sumber['jenis_sumber_air'][0].get('_id', ''))
+
+        return jsonify(sumber), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

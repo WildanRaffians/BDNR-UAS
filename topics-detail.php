@@ -1,20 +1,17 @@
 <?php
-    include('function.php');
-    $listSumberAir = readSumberAir();
+     // URL API untuk mengambil data
+    $urlSumberAir = "http://localhost:5000/api/sumber_air_lookup"; // Ganti dengan URL endpoint API Anda
+     // $urlSumberAirUpaya = "http://localhost:5000/api/sumber-air-upaya"; // Tambahkan endpoint sumber air jika ada
+     
+     // Mengambil data Upaya dari API
+    $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
 
     if (isset($_GET['id_sumber_air'])) {
-      $id = ($_GET["id_sumber_air"]);
-      $result_air = readOneSumberAir($id);
-      $detail_air = mysqli_fetch_assoc($result_air);
-      $result_upaya = readUpayaSumberAir($id);
-      
-    
-    // echo '<pre>';
-    // print_r($detail_air);
-    // print_r($result_upaya);
-
-    // echo $detail_air['nama_sumber_air'];
-    
+        $id = ($_GET["id_sumber_air"]);
+        // URL endpoint API
+        $urlDetailSumberAir = "http://localhost:5000/api/sumber_air_lookup/" . urlencode($id);
+        
+        $detailSumberAir = json_decode(file_get_contents($urlDetailSumberAir), true);    
     
     }
 ?>
@@ -100,13 +97,13 @@ https://templatemo.com/tm-590-topic-listing
                         <div class="col-lg-5 col-12 mb-5">
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="index.php">Homepage</a></li>
+                                    <li class="breadcrumb-item"><a href="topics-listing.php">List Sumber Air</a></li>
 
-                                    <li class="breadcrumb-item active" aria-current="page"><?=$detail_air['nama_sumber_air']?></li>
+                                    <li class="breadcrumb-item active" aria-current="page"><?=$detailSumberAir['nama_sumber_air']?></li>
                                 </ol>
                             </nav>
 
-                            <h2 class="text-white">Details of <br><?=$detail_air['nama_sumber_air']?></h2>
+                            <h2 class="text-white">Details of <br><?=$detailSumberAir['nama_sumber_air']?></h2>
 
                             <div class="d-flex align-items-center mt-5">
                                 <a href="#topics-detail" class="btn custom-btn custom-border-btn smoothscroll me-4">Read More</a>
@@ -117,7 +114,7 @@ https://templatemo.com/tm-590-topic-listing
 
                         <div class="col-lg-5 col-12">
                             <div class="topics-detail-block bg-white shadow-lg">
-                                <img src="images/foto_sumber_air/<?=$detail_air['foto_sumber_air']?>" class="topics-detail-block-image img-fluid">
+                                <img src="images/foto_sumber_air/<?=$detailSumberAir['foto_sumber_air']?>" class="topics-detail-block-image img-fluid">
                             </div>
                         </div>
 
@@ -131,19 +128,19 @@ https://templatemo.com/tm-590-topic-listing
                     <div class="row">
 
                         <div class="col-lg-8 col-12 m-auto">
-                            <h3 class="mb-4"><?=$detail_air['nama_sumber_air']?></h3>
+                            <h3 class="mb-4"><?=$detailSumberAir['nama_sumber_air']?></h3>
 
-                            <p><?=$detail_air['nama_sumber_air']?> berada di <?=$detail_air['name']?>, <?=$detail_air['provinces_name']?></p>
+                            <p><?=$detailSumberAir['nama_sumber_air']?> berada di <?=$detailSumberAir['kabupaten']['name']?>, <?=$detailSumberAir['provinsi']['name']?></p>
 
-                            <p>Kondisi Sumber Air: <?=$detail_air['kondisi_sumber_air']?></p>
+                            <p>Kondisi Sumber Air: <?=$detailSumberAir['kondisi_sumber_air']?></p>
 
-                            <p>Suhu: <?=$detail_air['suhu']?>&#8451;</p>
+                            <p>Suhu: <?=$detailSumberAir['suhu']?>&#8451;</p>
 
-                            <p>Warna: <?=$detail_air['warna']?></p>
+                            <p>Warna: <?=$detailSumberAir['warna']?></p>
 
-                            <p>pH: <?=$detail_air['pH']?></p>
+                            <p>pH: <?=$detailSumberAir['ph']?></p>
 
-                            <p>Kelayakan untuk diminum: <?=$detail_air['layak_minum']?></p>
+                            <p>Kelayakan untuk diminum: <?=$detailSumberAir['kelayakan']?></p>
 
                             <br>
 
@@ -151,8 +148,8 @@ https://templatemo.com/tm-590-topic-listing
 
                             <ul>
                                 <?php
-                                    foreach($result_upaya as $upaya) {
-                                        echo '<li><p>'.$upaya["nama_upaya"].'</p></li>';
+                                    foreach($detailSumberAir['upaya_peningkatan'] as $upaya) {
+                                        echo '<li><p>'.$upaya.'</p></li>';
                                     }
                                 ?>
                                 
