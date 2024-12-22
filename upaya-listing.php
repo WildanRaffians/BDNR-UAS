@@ -1,5 +1,4 @@
 <?php
-<<<<<<< HEAD
     // URL API untuk mengambil data
     $urlUpaya = "http://localhost:5000/api/upaya"; // Ganti dengan URL endpoint API Anda
     // $urlSumberAirUpaya = "http://localhost:5000/api/sumber-air-upaya"; // Tambahkan endpoint sumber air jika ada
@@ -9,33 +8,6 @@
 
     // Mengambil data Sumber Air Upaya dari API
     // $listSumberAirUpaya = json_decode(file_get_contents($urlSumberAirUpaya), true);
-=======
-    // include('function.php');
-    // $listUpaya = readUpaya();
-    // $listSumberAirUpaya = readSumberAirUpaya();
-
-    $url = "http://localhost:5000/upaya";
-
-    // Inisialisasi cURL
-    $ch = curl_init($url);
-
-    // Konfigurasi cURL
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    // Kirim request dan ambil respons
-    $response = curl_exec($ch);
-    curl_close($ch);
-
-    // Decode respons JSON
-    $listUpaya = json_decode($response, true);
-
-    // Tampilkan data
-    // foreach ($data as $upaya) {
-    //     echo "ID: " . $upaya["id_upaya_ketersediaan_air"] . "<br>";
-    //     echo "Nama Upaya: " . $upaya["nama_upaya"] . "<br><br>";
-    // }
-
->>>>>>> c4795c08f8e859a20aea23c500d246023d498ea6
 ?>
 
 <!doctype html>
@@ -106,41 +78,6 @@
                         </div>
 
                         <div class="col-lg-8 col-12 mt-3 mx-auto">
-<<<<<<< HEAD
-=======
-                        <?php
-                            $cacah = 0;
-                            foreach($listUpaya as $upaya){
-                        ?>
-                            <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
-                                <div class="d-flex">
-                                    <span class="badge bg-design rounded-pill"><?=$cacah+=1?></span>
-                                    
-                                    <div class="custom-block-topics-listing-info d-flex">
-                                        <div>
-                                            <h5 class="mb-2"><?=$upaya['nama_upaya']?></h5>
-                                            
-                                            <br>
-                                            <h6>Sumber Air yang Membutuhkan:</h6>
-                                            <p>
-                                            <?php
-                                                // foreach($listSumberAirUpaya as $sumberAirUpaya){
-                                                //     if($sumberAirUpaya['id_upaya_peningkatan_ketersediaan_air'] == $upaya['id_upaya_ketersediaan_air']){
-                                            ?>
-                                                        <!-- <a href="topics-detail.php?id_sumber_air=<?=$sumberAirUpaya['id_sumber_air']?>" style="padding-top: 5px;"><button type="button" class="btn btn-info" ><?=$sumberAirUpaya['nama_sumber_air']?></button></a> -->
-                                            <?php
-                                            //     }
-                                            // }
-                                            ?>
-                                            </p>                 
-                                        </div>
-                                        
-                                    </div>
-                                    
-                                </div>
-                            </div>
-                            
->>>>>>> c4795c08f8e859a20aea23c500d246023d498ea6
                             <?php
                             if (!empty($listUpaya)) {
                                 $cacah = 0;

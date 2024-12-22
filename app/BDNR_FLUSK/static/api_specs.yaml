@@ -1,0 +1,71 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "Upaya Peningkatan Ketersediaan Air API"
+  description: "API untuk mengelola data upaya peningkatan ketersediaan air"
+paths:
+  /api/upaya:
+    get:
+      summary: "Mengambil semua upaya"
+      responses:
+        '200':
+          description: "Daftar upaya"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_upaya_ketersediaan_air:
+                      type: integer
+                    nama_upaya:
+                      type: string
+  /api/upaya-create:
+    post:
+      summary: "Menambahkan upaya baru"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_upaya:
+                  type: string
+      responses:
+        '201':
+          description: "Upaya berhasil ditambahkan"
+  /api/upaya-update/{id}:
+    put:
+      summary: "Memperbarui upaya berdasarkan ID"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_upaya:
+                  type: string
+      responses:
+        '200':
+          description: "Upaya berhasil diperbarui"
+  /api/upaya-delete/{id}:
+    delete:
+      summary: "Menghapus upaya berdasarkan ID"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Upaya berhasil dihapus"
