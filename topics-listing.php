@@ -1,7 +1,16 @@
 <?php
-    include('function.php');
-    $listSumberAir = readSumberAir();
+    // include('function.php');
+    // $listSumberAir = readSumberAir();
+
+    // URL API untuk mengambil data
+    $urlSumberAir = "http://localhost:5000/api/sumber_air_lookup"; // Ganti dengan URL endpoint API Anda
+    // $urlSumberAirUpaya = "http://localhost:5000/api/sumber-air-upaya"; // Tambahkan endpoint sumber air jika ada
     
+    // Mengambil data Upaya dari API
+    $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
+
+    // Mengambil data Sumber Air Upaya dari API
+    // $listSumberAirUpaya = json_decode(file_get_contents($urlSumberAirUpaya), true);
 ?>
 
 <!doctype html>
@@ -224,6 +233,7 @@ https://templatemo.com/tm-590-topic-listing
                         <?php
                             $cacah = 0;
                             foreach($listSumberAir as $sumberAir){
+                                
                         ?>
                             <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
                                 <div class="d-flex">
@@ -234,14 +244,14 @@ https://templatemo.com/tm-590-topic-listing
                                         <div>
                                             <h5 class="mb-2"><?=$sumberAir['nama_sumber_air']?></h5>
 
-                                            <h6 class="mb-1"><?=$sumberAir['name']?>, <?=$sumberAir['provinces_name']?></h6>
+                                            <h6 class="mb-1"><?=$sumberAir["kabupaten"]["name"]?>, <?=$sumberAir['provinsi']['name']?></h6>
 
                                             <br>
 
                                             <p class="mb-0">Kondisi Sumber Air : <?=$sumberAir['kondisi_sumber_air']?></p>
-                                            <p class="mb-0">Kelayakan Minum : <?=$sumberAir['layak_minum']?></p>
+                                            <p class="mb-0">Kelayakan Minum : <?=$sumberAir['kelayakan']?></p>
 
-                                            <a href="topics-detail.php?id_sumber_air=<?=$sumberAir['id_sumber_air']?>" class="btn custom-btn mt-3 mt-lg-4">Detail</a>
+                                            <a href="topics-detail.php?id_sumber_air=<?=$sumberAir['_id']?>" class="btn custom-btn mt-3 mt-lg-4">Detail</a>
                                         </div>
 
                                     </div>
