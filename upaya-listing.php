@@ -111,15 +111,16 @@
                                                     <h6>Sumber Air yang Membutuhkan:</h6>
                                                     <p>
                                                         <?php
-                                                        if (!empty($listSumberAirUpaya)) {
-                                                            foreach ($listSumberAirUpaya as $sumberAirUpaya) {
-                                                                if ($sumberAirUpaya['id_upaya_peningkatan_ketersediaan_air'] == $upaya['id_upaya_ketersediaan_air']) {
+                                                        $sumberAirList = $listSumberAirByUpaya[$upaya['_id']] ?? [];
+                                                        if (!empty($sumberAirList)) {
+                                                            foreach ($sumberAirList as $sumberAirUpaya) {
+                                                                // if ($sumberAirUpaya['id_upaya_peningkatan_ketersediaan_air'] == $upaya['id_upaya_ketersediaan_air']) {
                                                                     ?>
-                                                                    <a href="topics-detail.php?id_sumber_air=<?= htmlspecialchars($sumberAirUpaya['id_sumber_air']) ?>" style="padding-top: 5px;">
+                                                                    <a href="topics-detail.php?id_sumber_air=<?= htmlspecialchars($sumberAirUpaya['_id']) ?>" style="padding-top: 5px;">
                                                                         <button type="button" class="btn btn-info"><?= htmlspecialchars($sumberAirUpaya['nama_sumber_air']) ?></button>
                                                                     </a>
                                                                     <?php
-                                                                }
+                                                                // }
                                                             }
                                                         }
                                                         ?>
