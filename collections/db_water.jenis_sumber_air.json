@@ -1,0 +1,30 @@
+[{
+  "_id": {
+    "$oid": "6766da641f686546f26c2018"
+  },
+  "nama_jenis_sumber_air": "Mata air"
+},
+{
+  "_id": {
+    "$oid": "6766da641f686546f26c2019"
+  },
+  "nama_jenis_sumber_air": "Sumur"
+},
+{
+  "_id": {
+    "$oid": "6766da641f686546f26c201a"
+  },
+  "nama_jenis_sumber_air": "Waduk"
+},
+{
+  "_id": {
+    "$oid": "6766da641f686546f26c201b"
+  },
+  "nama_jenis_sumber_air": "Danau"
+},
+{
+  "_id": {
+    "$oid": "6766da641f686546f26c201c"
+  },
+  "nama_jenis_sumber_air": "Sungai"
+}]
