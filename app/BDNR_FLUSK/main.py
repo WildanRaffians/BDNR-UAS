@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
-from BDNR_FLUSK.routes import routes
+from routes import routes
 
 app = Flask(__name__)
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from datetime import datetime
-from BDNR_FLUSK.database import collection
-from BDNR_FLUSK.models import Upaya
+from database import collection
+from models import Upaya
 from uuid import UUID
 import uuid
 from bson.objectid import ObjectId 
