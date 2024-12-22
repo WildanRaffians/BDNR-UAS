@@ -196,8 +196,6 @@ def get_sumber_air_lookup():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
 # READ (GET by ID) - Mendapatkan data berdasarkan ID
 @routes.route('/api/sumber_air_lookup/<id>', methods=['GET'])
 def get_sumber_air_lookup_by_id(id):
@@ -293,5 +291,40 @@ def get_sumber_air_lookup_by_id(id):
             sumber['jenis_sumber_air'][0]['_id'] = str(sumber['jenis_sumber_air'][0].get('_id', ''))
 
         return jsonify(sumber), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# READ (GET by upaya) - Mendapatkan data berdasarkan upaya
+@routes.route('/api/sumber_air_by_upayas', methods=['POST'])
+def get_sumber_air_by_upayas():
+    try:
+        data = request.get_json()
+        id_upayas = data.get('id_upayas', [])
+        if not id_upayas:
+            return jsonify({"error": "id_upayas is required"}), 400
+
+        # Konversi id_upayas ke ObjectId
+        from bson import ObjectId
+        id_upayas_obj = [ObjectId(id_upaya) for id_upaya in id_upayas]
+
+        # Query sumber air dengan filter id_upaya
+        sumbers = mongo.sumber_air.find(
+            {"upaya_peningkatan": {"$in": id_upayas_obj}},
+            {"_id": 1, "nama_sumber_air": 1, "upaya_peningkatan": 1}
+        )
+
+        # Mengelompokkan hasil berdasarkan id_upaya
+        result = {}
+        for sumber in sumbers:
+            for upaya in sumber['upaya_peningkatan']:
+                upaya_id_str = str(upaya)
+                if upaya_id_str not in result:
+                    result[upaya_id_str] = []
+                result[upaya_id_str].append({
+                    "_id": str(sumber["_id"]),
+                    "nama_sumber_air": sumber["nama_sumber_air"]
+                })
+
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

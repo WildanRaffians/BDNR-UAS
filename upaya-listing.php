@@ -50,6 +50,9 @@
                             <li class="nav-item"><a class="nav-link" href="topics-listing.php#list">List Sumber Air</a></li>
                             <li class="nav-item"><a class="nav-link active" href="upaya-listing.php#list">List Upaya Pelestarian</a></li>
                         </ul>
+                        <div class="d-none d-lg-block">
+                            <a href="login.php" class="navbar-icon bi-person smoothscroll"></a>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -80,6 +83,22 @@
                         <div class="col-lg-8 col-12 mt-3 mx-auto">
                             <?php
                             if (!empty($listUpaya)) {
+                                $idUpayas = array_column($listUpaya, '_id');
+                                $url = "http://localhost:5000/api/sumber_air_by_upayas";
+                                $ch = curl_init($url);
+                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                curl_setopt($ch, CURLOPT_POST, true);
+                                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(["id_upayas" => $idUpayas]));
+                                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                                $response = curl_exec($ch);
+                                if (curl_errno($ch)) {
+                                    echo "Error: " . curl_error($ch);
+                                    $listSumberAirByUpaya = [];
+                                } else {
+                                    $listSumberAirByUpaya = json_decode($response, true);
+                                }
+                                curl_close($ch);
+                                
                                 $cacah = 0;
                                 foreach ($listUpaya as $upaya) {
                                     ?>
