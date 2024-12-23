@@ -116,10 +116,15 @@ def get_sumber_air():
         return jsonify({"error": str(e)}), 500
 
 # Mendapatkan data sumber air dengan wilayahnya dan fitur search
-@routes.route('/api/sumber_air_wilayah', methods=['GET'])
-def get_sumber_air_wilayah():
+@routes.route('/api/sumber_air_lookup_filter', methods=['GET'])
+def get_sumber_air_lookup_filter():
     try:
+        # Ambil parameter pagination dan searching
         keyword = request.args.get('keyword', '').strip()
+        page = int(request.args.get('page', 1))  # Halaman default 1
+        limit = int(request.args.get('limit', 10))  # Default 10 data per halaman
+        skip = (page - 1) * limit
+
         pipeline = []
         
         # Join dan proses data seperti sebelumnya
@@ -146,6 +151,15 @@ def get_sumber_air_wilayah():
                 }
             })
 
+        # Hitung total data sebelum pagination
+        total_data_pipeline = pipeline + [{"$count": "total"}]
+        total_data_result = list(mongo.sumber_air.aggregate(total_data_pipeline))
+        total_data = total_data_result[0]["total"] if total_data_result else 0
+
+        # Pagination: skip dan limit
+        pipeline.append({"$skip": skip})
+        pipeline.append({"$limit": limit})
+
         sumbers = list(mongo.sumber_air.aggregate(pipeline))
 
         # Konversi ObjectId dan nested ID ke string
@@ -159,7 +173,12 @@ def get_sumber_air_wilayah():
             if 'provinsi' in sumber and sumber['provinsi']:
                 sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
 
-        return jsonify(sumbers), 200
+        return jsonify({
+            "data": sumbers,
+            "total": total_data,
+            "page": page,
+            "limit": limit
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

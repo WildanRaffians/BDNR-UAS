@@ -1,14 +1,19 @@
 <?php
+// Ambil parameter dari URL
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 10;
+$keyword = isset($_GET['keyword']) ? $_GET['keyword'] : '';
 
-// URL API untuk mengambil data
-$baseUrl = "http://localhost:5000/api/sumber_air_wilayah";
-$keyword = isset($_GET['keyword']) ? urlencode($_GET['keyword']) : '';
-$urlSumberAir = $baseUrl . ($keyword ? "?keyword=$keyword" : '');
+// Bangun URL dengan parameter
+$urlSumberAir = "http://localhost:5000/api/sumber_air_lookup_filter?page=$page&limit=$limit&keyword=" . urlencode($keyword);
 
-// Mengambil data Upaya dari API
+// Ambil data dari API
 $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
 
+$totalData = $listSumberAir['total'];
+$totalPages = ceil($totalData / $limit);
 ?>
+
 
 <!doctype html>
 <html lang="en">
@@ -99,7 +104,7 @@ $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
                 </div>
             </div>
         </header>
-        <section class="hero-section d-flex justify-content-center align-items-center" id="section_1" style="padding: 0px; background-image: linear-gradient(0deg, #80d0c7 0%, #80d0c7 100%); margin-bottom: 20px;">
+        <section class="hero-section d-flex justify-content-center align-items-center" id="section_1" style="padding: 0px; background-image: linear-gradient(0deg, #367c93 0%, #367c93 100%); margin-bottom: 20px;">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-8 col-12 mx-auto" style="height: 50px" id="search"></div>
@@ -133,19 +138,19 @@ $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
                 <div class="row">
                     <div class="col-lg-12 col-12 text-center">
                         <h3 class="mb-4">Sumber Air</h3>
-                        <?php if ($keyword): ?>
+                        <!-- <?php if ($keyword): ?>
                             <p>Hasil pencarian untuk: <strong><?= htmlspecialchars($_GET['keyword']) ?></strong></p>
-                        <?php endif; ?>
+                        <?php endif; ?> -->
                     </div>
                     <div class="col-lg-8 col-12 mt-3 mx-auto">
                         <?php
                         if (!empty($listSumberAir)) {
-                            $cacah = 0;
-                            foreach ($listSumberAir as $sumberAir) {
+                            // $cacah = 0;
+                            foreach ($listSumberAir['data'] as $sumberAir) {
                         ?>
                                 <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
                                     <div class="d-flex">
-                                        <span class="badge bg-design rounded-pill"><?= $cacah += 1 ?></span>
+                                        <!-- <span class="badge bg-design rounded-pill"><?= $cacah += 1 ?></span> -->
                                         <img src="images/foto_sumber_air/<?= $sumberAir['foto_sumber_air'] ?>" class="custom-block-image img-fluid" alt="" style="border-radius: 10px;">
                                         <div class="custom-block-topics-listing-info d-flex">
                                             <div>
@@ -167,6 +172,26 @@ $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
                         ?>
                     </div>
                 </div>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        <!-- Tombol Previous -->
+                        <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?page=<?= $page - 1 ?>&keyword=<?= urlencode($keyword) ?>" tabindex="-1">Previous</a>
+                        </li>
+
+                        <!-- Pagination Pages -->
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <li class="page-item <?= $page == $i ? 'active' : '' ?>">
+                                <a class="page-link" href="?page=<?= $i ?>&keyword=<?= urlencode($keyword) ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+
+                        <!-- Tombol Next -->
+                        <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                            <a class="page-link" href="?page=<?= $page + 1 ?>&keyword=<?= urlencode($keyword) ?>">Next</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </section>
 
