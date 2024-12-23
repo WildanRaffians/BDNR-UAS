@@ -1,9 +1,59 @@
 openapi: "3.0.0"
 info:
   version: "1.0.0"
-  title: "Upaya Peningkatan Ketersediaan Air API"
-  description: "API untuk mengelola data upaya peningkatan ketersediaan air"
+  title: "Hydroculus API"
+  description: "API untuk mengelola data sumber air, jenisnya, upaya peningkatan, dan pengguna."
 paths:
+
+  /api/register:
+    post:
+      summary: "Registrasi pengguna baru"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: "Registrasi berhasil"
+        '400':
+          description: "Username sudah digunakan"
+
+  /api/login:
+    post:
+      summary: "Login pengguna"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: "Login berhasil"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: "Username atau password salah"
+        '400':
+          description: "Permintaan tidak valid"
+
   /api/upaya:
     get:
       summary: "Mengambil semua upaya"
@@ -21,6 +71,7 @@ paths:
                       type: integer
                     nama_upaya:
                       type: string
+
   /api/upaya-create:
     post:
       summary: "Menambahkan upaya baru"
@@ -36,6 +87,7 @@ paths:
       responses:
         '201':
           description: "Upaya berhasil ditambahkan"
+
   /api/upaya-update/{id}:
     put:
       summary: "Memperbarui upaya berdasarkan ID"
@@ -57,6 +109,7 @@ paths:
       responses:
         '200':
           description: "Upaya berhasil diperbarui"
+
   /api/upaya-delete/{id}:
     delete:
       summary: "Menghapus upaya berdasarkan ID"
@@ -69,3 +122,154 @@ paths:
       responses:
         '200':
           description: "Upaya berhasil dihapus"
+
+  /api/sumber_air:
+    get:
+      summary: "Mendapatkan semua sumber air"
+      responses:
+        '200':
+          description: "Daftar sumber air"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    nama_sumber_air:
+                      type: string
+                    id_jenis_sumber_air:
+                      type: string
+                    upaya_peningkatan:
+                      type: array
+                      items:
+                        type: string
+        '500':
+          description: "Kesalahan server"
+
+  /api/sumber_air_lookup_filter:
+    get:
+      summary: "Mencari sumber air berdasarkan keyword dan pagination"
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: "Daftar sumber air dengan pagination"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+        '500':
+          description: "Kesalahan server"
+
+  /api/sumber_air_lookup:
+    get:
+      summary: "Mendapatkan semua sumber air dengan lookup"
+      responses:
+        '200':
+          description: "Daftar sumber air dengan lookup"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    nama_sumber_air:
+                      type: string
+        '500':
+          description: "Kesalahan server"
+
+  /api/sumber_air_lookup/{id}:
+    get:
+      summary: "Mendapatkan sumber air berdasarkan ID"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Detail sumber air"
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: "Format ID tidak valid"
+        '404':
+          description: "Data tidak ditemukan"
+        '500':
+          description: "Kesalahan server"
+
+  /api/sumber_air_by_upayas:
+    post:
+      summary: "Mendapatkan sumber air berdasarkan ID upaya"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_upayas:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: "Daftar sumber air"
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: "Permintaan tidak valid"
+        '500':
+          description: "Kesalahan server"
+
+  /protected:
+    get:
+      summary: "Route yang dilindungi"
+      responses:
+        '200':
+          description: "Akses diterima"
+        '401':
+          description: "Akses ditolak"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
