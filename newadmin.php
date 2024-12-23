@@ -1,16 +1,52 @@
 <?php
-    include('function.php');
-    if(isset($_POST["register"])) {
-        if(register($_POST) > 0) {
-            echo "<script>
-					alert('New Admin has been created');
-                    document.location.href = 'login.php';
-                    </script>";
-        } else {
-            echo mysqli_error($conn);
-        }
+if (isset($_POST["register"])) {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
+    $confirm = $_POST["confirm"];
+
+    if ($password !== $confirm) {
+        echo "<script>
+                alert('Passwords do not match!');
+                document.location.href = 'register.php';
+              </script>";
+        exit;
     }
+
+    // Endpoint API Flask
+    $url = "http://localhost:5000/api/register";
+
+    // Data untuk dikirim ke API
+    $data = [
+        'username' => $username,
+        'password' => $password
+    ];
+
+    // cURL untuk mengirimkan POST ke Flask
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpcode === 201) {
+        echo "<script>
+                alert('New Admin has been created!');
+                document.location.href = 'login.php';
+              </script>";
+    } else {
+        $response_data = json_decode($response, true);
+        $message = $response_data['message'] ?? 'Registration failed!';
+        echo "<script>
+                alert('$message');
+              </script>";
+    }
+}
 ?>
+
 
 <!doctype html>
 <html lang="en">

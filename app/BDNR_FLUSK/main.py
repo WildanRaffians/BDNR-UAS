@@ -3,7 +3,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from routes import routes
 
 app = Flask(__name__)
-
+app.secret_key = 'sha256'
 # Swagger UI
 SWAGGER_URL = '/swagger'
 API_URL = '/static/api_specs.yaml'

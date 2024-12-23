@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 # from database import collection
 from database import mongo
@@ -8,6 +9,10 @@ import uuid
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 import logging  # Tambahkan ini untuk menggunakan modul logging
+
+import jwt
+import os
+from auth import token_required
 
 # Konfigurasi logging
 logging.basicConfig(level=logging.INFO)
@@ -396,3 +401,73 @@ def get_sumber_air_by_upayas():
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# Endpoint registrasi
+@routes.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    if not data or not all(key in data for key in ('username', 'password')):
+        return jsonify({"message": "Username and password are required."}), 400
+
+    username = data['username']
+    password = data['password']
+
+    # Periksa apakah pengguna sudah terdaftar
+    if mongo.admins.find_one({"username": username}):
+        return jsonify({"message": "Username already exists."}), 400
+
+    # Buat pengguna baru
+    hashed_password = generate_password_hash(password)
+    new_user = {
+        "username": username,
+        "password": hashed_password
+    }
+
+    mongo.admins.insert_one(new_user)
+    return jsonify({"message": "User registered successfully."}), 201
+
+# Endpoint login
+@routes.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    if not data or not all(key in data for key in ('username', 'password')):
+        return jsonify({"message": "Username and password are required."}), 400
+
+    username = data['username']
+    password = data['password']
+
+    # Cari pengguna berdasarkan username
+    user = mongo.admins.find_one({"username": username})
+    if not user or not check_password_hash(user['password'], password):
+        return jsonify({"message": "Invalid username or password."}), 401
+
+    SECRET_KEY = 'sha256'
+    # Buat token JWT
+    token = jwt.encode({"user_id": str(user['_id']), "username": user['username']}, SECRET_KEY, algorithm="HS256")
+
+    return jsonify({"message": "Login successful.", "token": token}), 200
+
+# Endpoint logout
+# @routes.route('/logout', methods=['GET'])
+# def logout():
+#     token = request.args.get('token')  # Ambil token dari query string
+#     if not token:
+#         return jsonify({"message": "Token is missing!"}), 401
+
+#     try:
+#         jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+#     except jwt.ExpiredSignatureError:
+#         return jsonify({"message": "Token has expired!"}), 401
+#     except jwt.InvalidTokenError:
+#         return jsonify({"message": "Invalid token!"}), 401
+
+#     return jsonify({"message": "Logged out successfully!"}), 200
+
+
+
+
+@routes.route('/protected', methods=['GET'])
+@token_required
+def protected_route():
+    return jsonify({"message": "You have access to this route!"})

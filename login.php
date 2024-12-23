@@ -1,56 +1,75 @@
 <?php
-	session_start();
-	include('function.php');
-	$error = false;
-
-	if(isset($_COOKIE["id"]) && isset($_COOKIE["key"])) {
-		$id = $_COOKIE['id'];
-		$key = $_COOKIE['key'];
-
-		$result = mysqli_query($conn, "SELECT username from admins where id_admin = $id");
-		$row = mysqli_fetch_assoc($result);
-
-		if( $key === hash('sha256', $row['username'])) {
-			$_SESSION['login'] = true;
-		}
-	}
-	
-    if(isset($_SESSION["login"])) {
-        header("Location: admin.php");
+session_start();
+$error = false;
+    function checkToken($token) {
+        $url = "http://localhost:5000/protected"; // Endpoint Flask untuk verifikasi token
+    
+        // Buat cURL request
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $token, // Kirim token di header
+            'Content-Type: application/json'
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+    
+        return $httpcode === 200; // Token valid jika status code 200
     }
+    
+    $token = $_SESSION['token'] ?? null;
+    
+    if (checkToken($token) == 200) {
+        header("Location: admin.php"); 
+        exit;
+	}
 
-	if(isset($_POST["login"])) {
-		$username = $_POST["username"];
+if (isset($_POST["login"])) {
+    $username = $_POST["username"];
+    $password = $_POST["password"];
 
-		$password = $_POST["password"];
+    // Endpoint API Flask
+    $url = "http://localhost:5000/api/login";
 
-		$result = mysqli_query($conn, "SELECT * FROM admins where username = '$username'");
+    // Data untuk dikirim ke API
+    $data = [
+        'username' => $username,
+        'password' => $password
+    ];
 
-		if(mysqli_num_rows($result) === 1) {
-			$row = mysqli_fetch_assoc($result);
-			if(password_verify($password, $row["password"])) {
-				// set session
-				$_SESSION["login"] = true;
+    // cURL untuk mengirimkan POST ke Flask
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
-				if(isset($_POST['remember'])) {
-					//setcookie('login', 'true', time()+60);
-					setcookie('id', $row['id_admin'], time()+60);
-					setcookie('key', hash('sha256', $row['username']), time()+60);
-				}
-				header("Location: admin.php");
-				
-				exit;
-			}
-		}
-		$error = true;
-	} 
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-	echo 	"<script>
-				console.log('$error');
-			</script>";
+    if ($httpcode === 200) {
+        $response_data = json_decode($response, true);
+        $_SESSION['token'] = $response_data['token']; // Simpan token di sesi
+        $_SESSION['username'] = $username;
 
+        if (isset($_POST['remember'])) {
+            setcookie('token', $response_data['token'], time() + (86400 * 30), "/"); // Cookie berlaku 30 hari
+        }
 
+		print_r($_SESSION['token']);
+		
+
+        header("Location: admin.php");
+        exit;
+    } else {
+        $error = true;
+    }
+}
 ?>
+
 
 <!doctype html>
 <html lang="en">
