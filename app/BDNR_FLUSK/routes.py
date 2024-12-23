@@ -115,6 +115,55 @@ def get_sumber_air():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Mendapatkan data sumber air dengan wilayahnya dan fitur search
+@routes.route('/api/sumber_air_wilayah', methods=['GET'])
+def get_sumber_air_wilayah():
+    try:
+        keyword = request.args.get('keyword', '').strip()
+        pipeline = []
+        
+        # Join dan proses data seperti sebelumnya
+        pipeline += [
+            # Join ke regencies (kabupaten)
+            {"$lookup": {"from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten"}},
+            {"$unwind": {"path": "$kabupaten", "preserveNullAndEmptyArrays": True}},
+            # Join ke provinces (provinsi)
+            {"$lookup": {"from": "provinces", "localField": "kabupaten.province_id", "foreignField": "id_province", "as": "provinsi"}},
+            {"$unwind": {"path": "$provinsi", "preserveNullAndEmptyArrays": True}},
+            # Exclude timestamps
+            {"$project": {"createdAt": 0, "updatedAt": 0}}
+        ]
+
+        # Jika ada keyword, tambahkan pencarian ke pipeline
+        if keyword:
+            pipeline.append({
+                "$match": {
+                    "$or": [
+                        {"nama_sumber_air": {"$regex": keyword, "$options": "i"}},
+                        {"kabupaten.name": {"$regex": keyword, "$options": "i"}},
+                        {"provinsi.name": {"$regex": keyword, "$options": "i"}}
+                    ]
+                }
+            })
+
+        sumbers = list(mongo.sumber_air.aggregate(pipeline))
+
+        # Konversi ObjectId dan nested ID ke string
+        for sumber in sumbers:
+            sumber['_id'] = str(sumber.get('_id', ''))
+            sumber['id_jenis_sumber_air'] = str(sumber.get('id_jenis_sumber_air', ''))
+            if 'upaya_peningkatan' in sumber and isinstance(sumber['upaya_peningkatan'], list):
+                sumber['upaya_peningkatan'] = [str(upaya.get('nama_upaya')) for upaya in sumber['upaya_peningkatan'] if isinstance(upaya, dict)]
+            if 'kabupaten' in sumber and sumber['kabupaten']:
+                sumber['kabupaten']['_id'] = str(sumber['kabupaten'].get('_id', ''))
+            if 'provinsi' in sumber and sumber['provinsi']:
+                sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
+
+        return jsonify(sumbers), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @routes.route('/api/sumber_air_lookup', methods=['GET'])
 def get_sumber_air_lookup():
     try:

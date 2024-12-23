@@ -47,7 +47,7 @@
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-lg-5 me-lg-auto">
                             <li class="nav-item"><a class="nav-link" href="index.php">Home</a></li>
-                            <li class="nav-item"><a class="nav-link" href="topics-listing.php#list">List Sumber Air</a></li>
+                            <li class="nav-item"><a class="nav-link" href="topics-listing.php#section_1">List Sumber Air</a></li>
                             <li class="nav-item"><a class="nav-link active" href="upaya-listing.php#list">List Upaya Pelestarian</a></li>
                         </ul>
                         <div class="d-none d-lg-block">
