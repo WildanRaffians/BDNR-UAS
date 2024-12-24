@@ -1,2 +1,3 @@
 app/BDNR_FLUSK/__pycache__/
+app/BDNR_FLUSK/__pycache__/*.pyc
 app/__pycache__/

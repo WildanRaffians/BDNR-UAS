@@ -110,7 +110,7 @@
         if ($response) {
             // Optionally, decode the response if it's JSON
             $responseData = json_decode($response, true);
-            if ($responseData && $responseData['status'] === 'success') {
+            if ($responseData) {
                 // Redirect back to admin page or show a success message
                 header("Location: admin.php");
                 exit;
@@ -121,8 +121,8 @@
             echo "Error in API request.";
         }
     }
-    include('function.php');
-    $listSumberAir = readSumberAir();
+    // include('function.php');
+    // $listSumberAir = readSumberAir();
     // $r_wilayah = readTable('wilayah');
     // echo '<pre>';
     // print_r($r_jenis);
@@ -134,25 +134,25 @@
     // echo "<br>";
 
 
-if (isset($_POST['submit-add'])) {
+// if (isset($_POST['submit-add'])) {
 
-    $listUpaya = $_POST['listUpaya'];
+//     $listUpaya = $_POST['listUpaya'];
 
-  // jalankan query tambah record baru
-  $isAddSucceed = addWater($_POST, $_FILES, $listUpaya);
+//   // jalankan query tambah record baru
+//   $isAddSucceed = addWater($_POST, $_FILES, $listUpaya);
   
   
-  if ($isAddSucceed > 0) {
-    // jika penambahan sukses, tampilkan alert
-    echo "
-          <script>
+//   if ($isAddSucceed > 0) {
+//     // jika penambahan sukses, tampilkan alert
+//     echo "
+//           <script>
               
-              alert('Data Berhasil di ditambahkan');
-              document.location.href = 'admin.php';
-          </script>
-      ";
-  } 
-}
+//               alert('Data Berhasil di ditambahkan');
+//               document.location.href = 'admin.php';
+//           </script>
+//       ";
+//   } 
+// }
 
 // print_r($r_jenis);
 // echo $isAddSucceed;

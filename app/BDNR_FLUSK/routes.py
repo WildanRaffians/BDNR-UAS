@@ -346,28 +346,64 @@ def get_sumber_air_lookup_by_id(id):
         return jsonify(sumber), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
 # CREATE (POST by ID sumber_air) - menambahkan data sumber air
 @routes.route('/api/sumber_air_create', methods=['POST'])
 def add_water():
     try:
-        # Get JSON data from the request
+        # Ambil JSON data dari request
         data = request.get_json()
 
-        # Validate the required fields in the incoming data
-        if not data or not data.get('nama_sumber_air'):
-            return jsonify({"error": "Missing required fields"}), 400
+        # Validasi field wajib
+        required_fields = [
+            "nama_sumber_air", "kondisi_sumber_air", "suhu", "warna",
+            "ph", "kelayakan", "id_jenis_sumber_air", "id_kabupaten"
+        ]
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({"error": f"Field '{field}' is missing or empty"}), 400
 
-        # Optionally, you can validate other fields here
+        # Konversi tipe data langsung
+        try:
+            nama_sumber_air = str(data['nama_sumber_air'])
+            kondisi_sumber_air = str(data['kondisi_sumber_air'])
+            suhu = int(data['suhu'])
+            warna = str(data['warna'])
+            ph = float(data['ph'])
+            kelayakan = str(data['kelayakan'])
+            id_jenis_sumber_air = ObjectId(data['id_jenis_sumber_air'])
+            id_kabupaten = int(data['id_kabupaten'])
+            foto_sumber_air = str(data.get('foto_sumber_air', ''))
+            
+            # Konversi upaya_peningkatan menjadi List of ObjectId
+            upaya_peningkatan_raw = data.get('upaya_peningkatan', [])
+            upaya_peningkatan = [ObjectId(upaya) for upaya in upaya_peningkatan_raw]
+        except Exception as e:
+            return jsonify({"error": f"Invalid data type: {str(e)}"}), 400
 
-        # Insert new document into the collection
-        result = mongo.sumber_air.insert_one(data)
+        # Persiapkan data untuk disimpan
+        new_data = {
+            "nama_sumber_air": nama_sumber_air,
+            "kondisi_sumber_air": kondisi_sumber_air,
+            "suhu": suhu,
+            "warna": warna,
+            "ph": ph,
+            "kelayakan": kelayakan,
+            "id_jenis_sumber_air": id_jenis_sumber_air,
+            "id_kabupaten": id_kabupaten,
+            "foto_sumber_air": foto_sumber_air,
+            "upaya_peningkatan": upaya_peningkatan,
+        }
 
-        # Get the inserted document ID
-        new_id = str(result.inserted_id)
+        # Simpan ke MongoDB
+        result = mongo.sumber_air.insert_one(new_data)
 
-        # Return response with the new resource's ID
-        return jsonify({"message": "Sumber air added successfully", "id": new_id}), 201
+        # Berikan response dengan ID resource baru
+        return jsonify({
+            "message": "Sumber air added successfully",
+            "id": str(result.inserted_id)
+        }), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
