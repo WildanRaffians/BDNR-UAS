@@ -243,7 +243,7 @@ foreach ($slides as $url) {
                                                                     <p class="mb-0">Kondisi Sumber Air : <?= $sumberAir['kondisi_sumber_air'] ?></p>
                                                                     <p class="mb-1">Kelayakan Minum : <?= $sumberAir['kelayakan'] ?></p>
                                                                 </div>
-                                                                <span class="badge bg-design rounded-pill ms-auto">0</span>
+                                                                <!-- <span class="badge bg-design rounded-pill ms-auto">0</span> -->
                                                             </div>
                                                             <img class="img-fluid " src="images/foto_sumber_air/<?= $sumberAir['foto_sumber_air'] ?>" class="custom-block-image img-fluid" alt="" style="border-radius: 20px;">
                                                         </a>
@@ -267,7 +267,7 @@ foreach ($slides as $url) {
                                                                     <h6 class="mb-1">Yuk lihat</h6>
                                                                     <br>
                                                                 </div>
-                                                                <span class="badge bg-design rounded-pill ms-auto">0</span>
+                                                                <!-- <span class="badge bg-design rounded-pill ms-auto">0</span> -->
                                                             </div>
                                                             <img class="img-fluid " src="images/lainnya.png" class="custom-block-image img-fluid" alt="" style="border-radius: 20px;">
                                                         </a>
