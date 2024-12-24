@@ -130,21 +130,29 @@ def get_sumber_air_lookup_filter():
         limit = int(request.args.get('limit', 10))  # Default 10 data per halaman
         skip = (page - 1) * limit
 
-        pipeline = []
-        
-        # Join dan proses data seperti sebelumnya
-        pipeline += [
+        # Ambil parameter filtering
+        jenis_sumber_air = request.args.get('jenis_sumber_air', '').strip()
+        lokasi = request.args.get('lokasi', '').strip()
+        kelayakan = request.args.get('kelayakan', '').strip()
+        kondisi = request.args.get('kondisi', '').strip()
+
+        # Pipeline dasar
+        pipeline = [
+            # Join ke jenis_sumber_air
+            {"$lookup": {"from": "jenis_sumber_air", "localField": "id_jenis_sumber_air", "foreignField": "_id", "as": "jenis_sumber_air"}},
             # Join ke regencies (kabupaten)
             {"$lookup": {"from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten"}},
             {"$unwind": {"path": "$kabupaten", "preserveNullAndEmptyArrays": True}},
             # Join ke provinces (provinsi)
             {"$lookup": {"from": "provinces", "localField": "kabupaten.province_id", "foreignField": "id_province", "as": "provinsi"}},
             {"$unwind": {"path": "$provinsi", "preserveNullAndEmptyArrays": True}},
+            # Join ke upaya peningkatan
+            {"$lookup": {"from": "upaya_peningkatan", "localField": "upaya_peningkatan", "foreignField": "_id", "as": "upaya_peningkatan"}},
             # Exclude timestamps
             {"$project": {"createdAt": 0, "updatedAt": 0}}
         ]
 
-        # Jika ada keyword, tambahkan pencarian ke pipeline
+        # Filter berdasarkan keyword
         if keyword:
             pipeline.append({
                 "$match": {
@@ -156,6 +164,22 @@ def get_sumber_air_lookup_filter():
                 }
             })
 
+        # Filter berdasarkan jenis sumber air
+        if jenis_sumber_air:
+            pipeline.append({"$match": {"id_jenis_sumber_air": ObjectId(jenis_sumber_air)}})
+
+        # Filter berdasarkan lokasi (kabupaten)
+        if lokasi:
+            pipeline.append({"$match": {"id_kabupaten": ObjectId(lokasi)}})
+
+        # Filter berdasarkan kelayakan
+        if kelayakan:
+            pipeline.append({"$match": {"kelayakan": {"$regex": kelayakan, "$options": "i"}}})
+
+        # Filter berdasarkan kondisi sumber air
+        if kondisi:
+            pipeline.append({"$match": {"kondisi_sumber_air": {"$regex": kondisi, "$options": "i"}}})
+
         # Hitung total data sebelum pagination
         total_data_pipeline = pipeline + [{"$count": "total"}]
         total_data_result = list(mongo.sumber_air.aggregate(total_data_pipeline))
@@ -165,6 +189,7 @@ def get_sumber_air_lookup_filter():
         pipeline.append({"$skip": skip})
         pipeline.append({"$limit": limit})
 
+        # Jalankan pipeline
         sumbers = list(mongo.sumber_air.aggregate(pipeline))
 
         # Konversi ObjectId dan nested ID ke string
@@ -177,6 +202,8 @@ def get_sumber_air_lookup_filter():
                 sumber['kabupaten']['_id'] = str(sumber['kabupaten'].get('_id', ''))
             if 'provinsi' in sumber and sumber['provinsi']:
                 sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
+            if 'jenis_sumber_air' in sumber and isinstance(sumber['jenis_sumber_air'], list) and sumber['jenis_sumber_air']:
+                sumber['jenis_sumber_air'][0]['_id'] = str(sumber['jenis_sumber_air'][0].get('_id', ''))
 
         return jsonify({
             "data": sumbers,
@@ -186,6 +213,7 @@ def get_sumber_air_lookup_filter():
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # Mendapatkan data sumber air dengan wilayahnya limit
 @routes.route('/api/sumber_air_wilayah_limit', methods=['GET'])
@@ -235,6 +263,7 @@ def get_sumber_air_lookup():
         pipeline = [
             # Join ke jenis_sumber_air
             { "$lookup": { "from": "jenis_sumber_air", "localField": "id_jenis_sumber_air", "foreignField": "_id", "as": "jenis_sumber_air" } },
+            { "$unwind": { "path": "$jenis_sumber_air", "preserveNullAndEmptyArrays": True } },
             # Join ke regencies (kabupaten)
             { "$lookup": { "from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten" } },
             { "$unwind": { "path": "$kabupaten", "preserveNullAndEmptyArrays": True } },
@@ -260,8 +289,8 @@ def get_sumber_air_lookup():
                 sumber['kabupaten']['_id'] = str(sumber['kabupaten'].get('_id', ''))
             if 'provinsi' in sumber and sumber['provinsi']:
                 sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
-            if 'jenis_sumber_air' in sumber and isinstance(sumber['jenis_sumber_air'], list) and sumber['jenis_sumber_air']:
-                sumber['jenis_sumber_air'][0]['_id'] = str(sumber['jenis_sumber_air'][0].get('_id', ''))
+            if 'jenis_sumber_air' in sumber and sumber['jenis_sumber_air']:
+                sumber['jenis_sumber_air']['_id'] = str(sumber['jenis_sumber_air'].get('_id', ''))
 
         return jsonify(sumbers), 200
     except Exception as e:

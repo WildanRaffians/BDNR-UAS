@@ -29,8 +29,13 @@
         exit;
     }
     include('function.php');
-    $listSumberAir = readSumberAir();
+    // Bangun URL dengan parameter
+    $urlSumberAir = "http://localhost:5000/api/sumber_air_lookup";
 
+    // Ambil data dari API
+    $listSumberAir = json_decode(file_get_contents($urlSumberAir), true);
+    
+    // $listSumberAir = readSumberAir();
     // if (isset($_GET['id_sumber_air'])) {
     //   $id = ($_GET["id_sumber_air"]);
     //   $result_air = readOneSumberAir($id);
@@ -184,13 +189,13 @@ https://templatemo.com/tm-590-topic-listing
                         <td><?=$sumberAir['kondisi_sumber_air']?></td>
                         <td><?=$sumberAir['suhu']?></td>
                         <td><?=$sumberAir['warna']?></td>
-                        <td><?=$sumberAir['pH']?></td>
-                        <td><?=$sumberAir['layak_minum']?></td>
-                        <td><?=$sumberAir['name']?>, <?=$sumberAir['provinces_name']?></td>
-                        <td><?=$sumberAir['nama_jenis_sumber_air']?></td>
+                        <td><?=$sumberAir['ph']?></td>
+                        <td><?=$sumberAir['kelayakan']?></td>
+                        <td><?=$sumberAir['kabupaten']['name']?>, <?=$sumberAir['provinsi']['name']?></td>
+                        <td><?=$sumberAir['jenis_sumber_air']['nama_jenis_sumber_air']?></td>
                         <td><a href="images/foto_sumber_air/<?=$sumberAir['foto_sumber_air']?>">See image</a></td>
-                        <td><a type="button" class="btn btn-outline-success" href="updateWater.php?id_sumber_air=<?=$sumberAir['id_sumber_air']?>">Update</a> 
-                        <a type="button" class="btn btn-outline-danger"onclick="return confirm('Yakin Hapus?')" href="deleteWater.php?id=<?=$sumberAir['id_sumber_air']?>">Delete</a>
+                        <td><a type="button" class="btn btn-outline-success" href="updateWater.php?id_sumber_air=<?=$sumberAir['_id']?>">Update</a> 
+                        <a type="button" class="btn btn-outline-danger"onclick="return confirm('Yakin Hapus?')" href="deleteWater.php?id=<?=$sumberAir['_id']?>">Delete</a>
                         </td>
                         </tr>
                         <?php
