@@ -1,14 +1,129 @@
 <?php
-    session_start();
-    if(!isset($_SESSION["login"])) {
-        header("Location: login.php");
+     session_start();
+     function checkToken($token) {
+         $url = "http://localhost:5000/protected"; // Endpoint Flask untuk verifikasi token
+     
+         // Buat cURL request
+         $ch = curl_init($url);
+         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+         curl_setopt($ch, CURLOPT_HTTPHEADER, [
+             'Authorization: Bearer ' . $token, // Kirim token di header
+             'Content-Type: application/json'
+         ]);
+     
+         $response = curl_exec($ch);
+         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+         curl_close($ch);
+     
+         return $httpcode === 200; // Token valid jika status code 200
+     }
+     
+     
+     // Ambil token dari session atau cookie
+     $token = $_SESSION['token'] ?? null;
+     
+     if (!$token || !checkToken($token)) {
+         // Token tidak valid atau tidak ditemukan
+         header("Location: login.php"); // Arahkan ke halaman login
+         exit;
+     }
+    
+    // URL for the Flask API
+    $urlWaterCreate = 'http://localhost:5000/api/sumber_air_create'; // Replace with actual URL
+    $urlJenisSumberAir = 'http://localhost:5000/api/jensisSA';
+    $urlUpaya = "http://localhost:5000/api/upaya"; // Endpoint GET all
+
+    // Mengambil data Upaya dari API
+    $r_upaya = json_decode(file_get_contents($urlUpaya), true);
+
+
+    // Mengambil data Upaya dari API
+    $r_jenis = json_decode(file_get_contents($urlJenisSumberAir), true);
+
+    // Fungsi CREATE (POST) Water
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit-add'])) {
+        // Get form data
+        $namaSumberAir = $_POST['nama_sumber_air'];
+        $kondisiSumberAir = $_POST['kondisi'];
+        $suhu = $_POST['suhu'];
+        $warna = $_POST['warna'];
+        $ph = $_POST['pH'];
+        $kelayakan = $_POST['layak_minum'];
+        $idJenisSumberAir = $_POST['jenis_sumber_air'];
+        $idKabupaten = $_POST['kabupaten'];
+    
+        // Handle file upload
+        $fotoSumberAir = null; // Default if no file uploaded
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            // Get file details
+            $fileTmpPath = $_FILES['image']['tmp_name'];
+            $fileName = $_FILES['image']['name'];
+            $fileSize = $_FILES['image']['size'];
+            $fileType = $_FILES['image']['type'];
+            
+            // Specify upload directory
+            $uploadDir = 'uploads/';
+            $destFilePath = $uploadDir . basename($fileName);
+    
+            // Move the uploaded file to the target directory
+            if (move_uploaded_file($fileTmpPath, $destFilePath)) {
+                $fotoSumberAir = $destFilePath; // Set the path to the uploaded file
+            } else {
+                // Handle file upload error
+                echo "There was an error uploading the file.";
+            }
+        }
+    
+        // Handle multiple checkboxes for upaya_peningkatan
+        $upayaPeningkatan = isset($_POST['listUpaya']) ? $_POST['listUpaya'] : [];
+    
+        // Prepare data for POST request
+        $data = [
+            "nama_sumber_air" => $namaSumberAir,
+            "kondisi_sumber_air" => $kondisiSumberAir,
+            "suhu" => $suhu,
+            "warna" => $warna,
+            "ph" => $ph,
+            "kelayakan" => $kelayakan,
+            "id_jenis_sumber_air" => $idJenisSumberAir,
+            "id_kabupaten" => $idKabupaten,
+            "foto_sumber_air" => $fotoSumberAir,  // Path to uploaded image file
+            "upaya_peningkatan" => $upayaPeningkatan,  // Array of upaya selected
+        ];
+    
+        // Set the options for the HTTP request
+        $options = [
+            'http' => [
+                'header'  => "Content-type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ],
+        ];
+    
+        // Create the stream context
+        $context  = stream_context_create($options);
+    
+        // Send the POST request to the API
+        $response = file_get_contents($urlWaterCreate, false, $context);
+    
+        // Handle API response, for example check if the creation was successful
+        if ($response) {
+            // Optionally, decode the response if it's JSON
+            $responseData = json_decode($response, true);
+            if ($responseData && $responseData['status'] === 'success') {
+                // Redirect back to admin page or show a success message
+                header("Location: admin.php");
+                exit;
+            } else {
+                echo "Failed to add water source.";
+            }
+        } else {
+            echo "Error in API request.";
+        }
     }
     include('function.php');
     $listSumberAir = readSumberAir();
-
-    $r_jenis = readTable('jenis_sumber_air');
     // $r_wilayah = readTable('wilayah');
-    $r_upaya = readTable('upaya_peningkatan_ketersediaan_air');
     // echo '<pre>';
     // print_r($r_jenis);
 
@@ -193,7 +308,7 @@ https://templatemo.com/tm-590-topic-listing
                                             <?php
                                                     foreach($r_jenis as $jenis) {
                                                 ?>
-                                                    <option value="<?=$jenis['id_jenis_sumber_air']?>"> <?=$jenis['id_jenis_sumber_air']?> - <?=$jenis['nama_jenis_sumber_air']?></option>
+                                                    <option value="<?=$jenis['_id']?>"> - <?=$jenis['nama_jenis_sumber_air']?></option>
                                                 <?php  
                                                     }
                                                 ?>
@@ -290,7 +405,7 @@ https://templatemo.com/tm-590-topic-listing
                                         <input 
                                         class="form-check-input" 
                                         type="checkbox" id="inlineCheckbox1" 
-                                        value="<?=$upaya['id_upaya_ketersediaan_air']?>" 
+                                        value="<?=$upaya['_id']?>" 
                                         name="listUpaya[]"
                                             
                                         >
@@ -465,7 +580,7 @@ https://templatemo.com/tm-590-topic-listing
 			// hilangkan label dan tag select yang belum dibutuhkan
 			// $("#lbl_kabupaten").hide();
 			$("#kabupaten").hide();
-			$("#kecamatan").hide();
+			//$("#kecamatan").hide();
 			// $("#lbl_kecamatan").hide();
 			// $("#kelurahan").hide();
 			// $("#lbl_kelurahan").hide();

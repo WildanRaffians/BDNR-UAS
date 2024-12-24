@@ -346,6 +346,83 @@ def get_sumber_air_lookup_by_id(id):
         return jsonify(sumber), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+# CREATE (POST by ID sumber_air) - menambahkan data sumber air
+@routes.route('/api/sumber_air_create', methods=['POST'])
+def add_water():
+    try:
+        # Get JSON data from the request
+        data = request.get_json()
+
+        # Validate the required fields in the incoming data
+        if not data or not data.get('nama_sumber_air'):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Optionally, you can validate other fields here
+
+        # Insert new document into the collection
+        result = mongo.sumber_air.insert_one(data)
+
+        # Get the inserted document ID
+        new_id = str(result.inserted_id)
+
+        # Return response with the new resource's ID
+        return jsonify({"message": "Sumber air added successfully", "id": new_id}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+#UPDATE (PUT by ID sumber_air) - Update data sumber air
+@routes.route('/api/sumber_air_update/<id>', methods=['PUT'])
+def update_water(id):
+    try:
+        # Validate the ID format
+        try:
+            object_id = ObjectId(id)
+        except InvalidId:
+            return jsonify({"error": "Invalid ID format"}), 400
+
+        # Get the updated data from the request body
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "No data provided for update"}), 400
+
+        # Update the document in MongoDB
+        result = mongo.sumber_air.update_one(
+            {"_id": object_id},  # Filter by the object ID
+            {"$set": data}  # Update the fields with new data
+        )
+
+        if result.matched_count == 0:
+            return jsonify({"error": "Data not found for update"}), 404
+
+        return jsonify({"message": "Sumber air updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+#DELETE (DELETE by ID Sumber_air) - Delete data sumber air
+@routes.route('/api/sumber_air_delete/<id>', methods=['DELETE'])
+def delete_water(id):
+    try:
+        # Validate the ID format
+        try:
+            object_id = ObjectId(id)
+        except InvalidId:
+            return jsonify({"error": "Invalid ID format"}), 400
+
+        # Delete the document from MongoDB
+        result = mongo.sumber_air.delete_one({"_id": object_id})
+
+        if result.deleted_count == 0:
+            return jsonify({"error": "Data not found for deletion"}), 404
+
+        return jsonify({"message": "Sumber air deleted successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 # READ (GET by upaya) - Mendapatkan data berdasarkan upaya
 @routes.route('/api/sumber_air_by_upayas', methods=['POST'])
@@ -382,6 +459,37 @@ def get_sumber_air_by_upayas():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# Jenis sumber air ----------------------------------------------------------------
+# READ (GET) - Mendapatkan semua data
+@routes.route('/api/jensisSA', methods=['GET'])
+def get_jensisSA():
+    jensisSAs = list(mongo.jenis_sumber_air.find({}, {"createdAt": 0, "updatedAt": 0}))  # Exclude timestamps
+    for jensisSA in jensisSAs:
+        jensisSA['_id'] = str(jensisSA['_id'])  # Konversi ObjectId ke string untuk JSON
+    return jsonify(jensisSAs), 200
+
+# READ (GET) - Mendapatkan semua data
+@routes.route('/api/kabupaten', methods=['GET'])
+def get_kabupaten():
+    provinsi = request.args.get('provinsi')
+    query = {}
+    if provinsi:
+        provinsi = int(provinsi)
+        query = {"province_id": provinsi}  # Menyaring berdasarkan provinsi
+    
+    kabupatens = list(mongo.regencies.find(query, {"createdAt": 0, "updatedAt": 0}))  # Exclude timestamps
+    for kabupaten in kabupatens:
+        kabupaten['_id'] = str(kabupaten['_id'])  # Konversi ObjectId ke string untuk JSON
+    return jsonify(kabupatens), 200
+
+# READ (GET) - Mendapatkan semua data
+@routes.route('/api/provinsi', methods=['GET'])
+def get_provinsi():
+    provinsis = list(mongo.provinces.find({}, {"createdAt": 0, "updatedAt": 0}))  # Exclude timestamps
+    for provinsi in provinsis:
+        provinsi['_id'] = str(provinsi['_id'])  # Konversi ObjectId ke string untuk JSON
+    return jsonify(provinsis), 200
 
 # Endpoint registrasi
 @routes.route('/api/register', methods=['POST'])

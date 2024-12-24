@@ -1,7 +1,31 @@
 <?php
     session_start();
-    if(!isset($_SESSION["login"])) {
-        header("Location: login.php");
+    function checkToken($token) {
+        $url = "http://localhost:5000/protected"; // Endpoint Flask untuk verifikasi token
+    
+        // Buat cURL request
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $token, // Kirim token di header
+            'Content-Type: application/json'
+        ]);
+    
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+    
+        return $httpcode === 200; // Token valid jika status code 200
+    }
+    
+    
+    // Ambil token dari session atau cookie
+    $token = $_SESSION['token'] ?? null;
+    
+    if (!$token || !checkToken($token)) {
+        // Token tidak valid atau tidak ditemukan
+        header("Location: login.php"); // Arahkan ke halaman login
+        exit;
     }
     include('function.php');
     $listSumberAir = readSumberAir();
