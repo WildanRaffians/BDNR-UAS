@@ -6,16 +6,13 @@
         
 
         $query = 
-"SELECT * FROM sumber_air 
-JOIN regencies ON sumber_air.id_kabupaten = regencies.id
-JOIN provinces ON regencies.province_id = provinces.id
-JOIN jenis_sumber_air ON sumber_air.id_jenis_sumber_air = jenis_sumber_air.id_jenis_sumber_air
-ORDER BY id_sumber_air
-";
-
-        
-
-
+            "SELECT * FROM sumber_air 
+            JOIN regencies ON sumber_air.id_kabupaten = regencies.id
+            JOIN provinces ON regencies.province_id = provinces.id
+            JOIN jenis_sumber_air ON sumber_air.id_jenis_sumber_air = jenis_sumber_air.id_jenis_sumber_air
+            ORDER BY id_sumber_air
+            LIMIT 5
+            ";
         $eksekusi = mysqli_query($conn, $query);
 
         return $eksekusi;
@@ -26,13 +23,13 @@ ORDER BY id_sumber_air
         
 
         $query = 
-"SELECT * FROM sumber_air 
-JOIN regencies ON sumber_air.id_kabupaten = regencies.id
-JOIN provinces ON regencies.province_id = provinces.id
-JOIN jenis_sumber_air ON sumber_air.id_jenis_sumber_air = jenis_sumber_air.id_jenis_sumber_air
-ORDER BY id_sumber_air
-LIMIT $start, $limit
-";
+            "SELECT * FROM sumber_air 
+            JOIN regencies ON sumber_air.id_kabupaten = regencies.id
+            JOIN provinces ON regencies.province_id = provinces.id
+            JOIN jenis_sumber_air ON sumber_air.id_jenis_sumber_air = jenis_sumber_air.id_jenis_sumber_air
+            ORDER BY id_sumber_air
+            LIMIT $start, $limit
+            ";
 
         
 

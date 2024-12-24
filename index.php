@@ -1,42 +1,39 @@
 <?php
-include('function.php');
-global $conn;
-global $conn2;
-$listSumberAir = readSumberAir();
-// $listSumberAirKondisi = readSumberAirKondisi();
-// $listSumberAirSuhu = readSumberAirSuhu();
-// $listSumberAirWarna = readSumberAirWarna();
-// $listSumberAirpH = readSumberAirpH();
-$listSumberAirLayakMinum = readSumberAirLayakMinum();
-$r_jenis = readTable('jenis_sumber_air');
-$r_provinces = readTable('provinces');
-$r_regencies = readTable('regencies');
-
 $dataPerSlide = 3;
-$dataCount = mysqli_num_rows($listSumberAir);
+$dataCount = 5;
 $slideCount = ceil($dataCount / $dataPerSlide);
 $activeSlide = (isset($_GET["slide"])) ? $_GET["slide"] : 1;
 $slideNo = 0;
-// 0 1 2, 1
-// 3 4 5, 2
-// 6 7 8, 3
 $startSlide = ($dataPerSlide * $activeSlide) - $dataPerSlide;
+// URL API
+$base_url = 'http://localhost:5000/api/sumber_air_wilayah_limit';
 
+// Simpan URL untuk masing-masing parameter
+$slides = [
+    // $base_url . '?start=0&limit=3',
+    $base_url . '?start=3&limit=2'
+];
 
+// Hasil API
+$data_slides = [];
 
-$slides = [];
-for ($i = 2; $i <= $slideCount + 1; $i++) {
-    array_push($slides, readSumberAirLimit($slideNo, $dataPerSlide));
-    $slideNo = ($dataPerSlide * $i) - $dataPerSlide;
+// Ambil data dari API untuk setiap URL
+foreach ($slides as $url) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    // Decode JSON menjadi array
+    $data = json_decode($response, true);
+
+    if (is_array($data)) {
+        $data_slides[] = $data;
+    } else {
+        $data_slides[] = [];
+    }
 }
-
-// echo "<pre>";
-// for($i = 0; $i < $slideCount; $i++) {
-//     foreach($slides[$i] as $data) {
-//         var_dump($data);
-//     }
-// }
-// die();
 ?>
 
 <!doctype html>
@@ -82,13 +79,7 @@ for ($i = 2; $i <= $slideCount + 1; $i++) {
             box-shadow: 0 0 5px 5px white inset;
         }
     </style>
-    <!--
 
-TemplateMo 590 topic listing
-
-https://templatemo.com/tm-590-topic-listing
-
--->
 </head>
 
 <body class="topics-listing-page" id="top">
@@ -177,11 +168,7 @@ https://templatemo.com/tm-590-topic-listing
                                 <div class="custom-block-overlay-text d-flex">
                                     <div>
                                         <h5 class="text-white mb-2">Bisa ngapain aja?</h5>
-
-
-
                                         <p class="text-white">Kalian bisa mencari daerah yang memiliki sumber air dan juga karakteristiknya. Mengetahui kondisinya? Bisa. Suhunya? Bisa dong. Warna dan pH-nya? Tentu saja bisa. Kalian juga bisa mencari hal lainnya yang berkaitan dengan sumber air di Indonesia :)</p>
-
                                         <a href="#all" class="btn custom-btn mt-2 mt-lg-3">Jelajahi</a>
                                     </div>
 
@@ -218,10 +205,10 @@ https://templatemo.com/tm-590-topic-listing
         </section>
 
         <section class="explore-section section-padding" id="section_2" style="padding-top: 0px; padding-bottom: 500px" style="position: relative">
-            <a id="prev-button" style="position:absolute; left: 0; top: 1100px; width: 50px; height:500px; z-index: 99;"></a>
+            <!-- <a id="prev-button" style="position:absolute; left: 0; top: 1100px; width: 50px; height:500px; z-index: 99;"></a>
             <a id="next-button" style="position:absolute; right: 0; top: 1150px; width: 50px; height:500px; z-index: 99;"></a>
             <img src="images/button/next-svgrepo-com.svg" alt="" style="position:absolute; top: 1350px; right: 0; width:30px; height:30px; z-index: 98;">
-            <img src="images/button/previous-svgrepo-com.svg" alt="" style="position:absolute; top: 1350px; left: 0; width:30px; height:30px; z-index: 98;">
+            <img src="images/button/previous-svgrepo-com.svg" alt="" style="position:absolute; top: 1350px; left: 0; width:30px; height:30px; z-index: 98;"> -->
             <div class="container-fluid">
                 <div class="row">
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -238,53 +225,67 @@ https://templatemo.com/tm-590-topic-listing
                         <div class="tab-content" id="myTabContent" style="position:relative">
                             <div id="active-search">
                                 <?php
-                                for ($i = 0; $i < $slideCount; $i++) {
-                                    // foreach($slides[$i] as $data) {
-                                    //     var_dump($data);
-                                    // }
+                                foreach ($data_slides as $index => $sumber_air_list) {
                                 ?>
-
-                                    <div class="tab-pane fade " id="all-pane" role="tabpanel" aria-labelledby="all" data-index="<?= $i ?>" style="position:absolute">
+                                    <div class="tab-pane fade " id="all-pane" role="tabpanel" aria-labelledby="all" data-index="0" style="position:absolute">
                                         <div class="row">
                                             <?php
-
-
                                             $count = 0;
-                                            foreach ($slides[$i] as $sumberAir) {
+                                            foreach ($sumber_air_list as $sumberAir) {
                                             ?>
                                                 <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
                                                     <div class="custom-block bg-white shadow-lg">
-                                                        <a href="topics-detail.php?id_sumber_air=<?= $sumberAir['id_sumber_air'] ?>">
+                                                        <a href="topics-detail.php?id_sumber_air=<?= $sumberAir['_id'] ?>">
                                                             <div class="d-flex">
                                                                 <div>
                                                                     <h5 class="mb-2"><?= $sumberAir['nama_sumber_air'] ?></h5>
-                                                                    <h6 class="mb-1"><?= $sumberAir['name'] ?>, <?= $sumberAir['provinces_name'] ?></h6>
-
+                                                                    <h6 class="mb-1"><?= $sumberAir['kabupaten']['name'] ?>, <?= $sumberAir['provinsi']['name'] ?></h6>
                                                                     <p class="mb-0">Kondisi Sumber Air : <?= $sumberAir['kondisi_sumber_air'] ?></p>
-                                                                    <p class="mb-1">Kelayakan Minum : <?= $sumberAir['layak_minum'] ?></p>
+                                                                    <p class="mb-1">Kelayakan Minum : <?= $sumberAir['kelayakan'] ?></p>
                                                                 </div>
-
-                                                                <span class="badge bg-design rounded-pill ms-auto"><?= $sumberAir['id_sumber_air'] ?></span>
+                                                                <span class="badge bg-design rounded-pill ms-auto">0</span>
                                                             </div>
-
                                                             <img class="img-fluid " src="images/foto_sumber_air/<?= $sumberAir['foto_sumber_air'] ?>" class="custom-block-image img-fluid" alt="" style="border-radius: 20px;">
                                                         </a>
                                                     </div>
                                                 </div>
-
                                             <?php
                                                 $count++;
                                             }
                                             ?>
+                                            <?php
+                                            if (1 == 1) {
+                                            ?>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
+                                                    <div class="custom-block bg-white shadow-lg">
+                                                        <a href="topics-listing.php#section_1">
+                                                            <div class="d-flex">
+                                                                <div>
+                                                                    <br>
+                                                                    <h5 class="mb-1">Masih banyak loh sumber air lainnya.</h5>
+                                                                    <br>
+                                                                    <h6 class="mb-1">Yuk lihat</h6>
+                                                                    <br>
+                                                                </div>
+                                                                <span class="badge bg-design rounded-pill ms-auto">0</span>
+                                                            </div>
+                                                            <img class="img-fluid " src="images/lainnya.png" class="custom-block-image img-fluid" alt="" style="border-radius: 20px;">
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            <?php
+                                            }
+                                            ?>
                                         </div>
                                     </div>
+
                                 <?php
                                 }
                                 ?>
+
                             </div>
                         </div>
         </section>
-
 
         <section class="timeline-section section-padding" id="section_3">
             <div class="section-overlay"></div>
@@ -345,7 +346,6 @@ https://templatemo.com/tm-590-topic-listing
                 </div>
             </div>
         </section>
-
 
         <section class="faq-section section-padding" id="section_4">
             <div class="container">
@@ -412,7 +412,6 @@ https://templatemo.com/tm-590-topic-listing
                 </div>
             </div>
         </section>
-
 
         <!-- <section class="contact-section section-padding section-bg" id="section_5">
                 <div class="container">

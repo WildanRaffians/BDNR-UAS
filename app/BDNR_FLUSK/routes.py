@@ -187,66 +187,64 @@ def get_sumber_air_lookup_filter():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Mendapatkan data sumber air dengan wilayahnya limit
+@routes.route('/api/sumber_air_wilayah_limit', methods=['GET'])
+def get_sumber_air_wilayah_limit():
+    try:
+        start = request.args.get('start', default=0, type=int)
+        limit = request.args.get('limit', default=1, type=int)
+
+        pipeline = []
+        
+        # Join dan proses data seperti sebelumnya
+        pipeline += [
+            # Join ke regencies (kabupaten)
+            {"$lookup": {"from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten"}},
+            {"$unwind": {"path": "$kabupaten", "preserveNullAndEmptyArrays": True}},
+            # Join ke provinces (provinsi)
+            {"$lookup": {"from": "provinces", "localField": "kabupaten.province_id", "foreignField": "id_province", "as": "provinsi"}},
+            {"$unwind": {"path": "$provinsi", "preserveNullAndEmptyArrays": True}},
+            # Exclude timestamps
+            {"$project": {"createdAt": 0, "updatedAt": 0}}
+        ]
+
+        sumbers = list(mongo.sumber_air.aggregate(pipeline))
+
+        # Konversi ObjectId dan nested ID ke string
+        for sumber in sumbers:
+            sumber['_id'] = str(sumber.get('_id', ''))
+            sumber['id_jenis_sumber_air'] = str(sumber.get('id_jenis_sumber_air', ''))
+            if 'upaya_peningkatan' in sumber and isinstance(sumber['upaya_peningkatan'], list):
+                sumber['upaya_peningkatan'] = [str(upaya.get('nama_upaya')) for upaya in sumber['upaya_peningkatan'] if isinstance(upaya, dict)]
+            if 'kabupaten' in sumber and sumber['kabupaten']:
+                sumber['kabupaten']['_id'] = str(sumber['kabupaten'].get('_id', ''))
+            if 'provinsi' in sumber and sumber['provinsi']:
+                sumber['provinsi']['_id'] = str(sumber['provinsi'].get('_id', ''))
+        
+        # Filter data berdasarkan start dan limit
+        filtered_sumbers = sumbers[start:start + limit]
+
+        return jsonify(filtered_sumbers), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @routes.route('/api/sumber_air_lookup', methods=['GET'])
 def get_sumber_air_lookup():
     try:
         pipeline = [
             # Join ke jenis_sumber_air
-            {
-                "$lookup": {
-                    "from": "jenis_sumber_air",
-                    "localField": "id_jenis_sumber_air",
-                    "foreignField": "_id",
-                    "as": "jenis_sumber_air"
-                }
-            },
+            { "$lookup": { "from": "jenis_sumber_air", "localField": "id_jenis_sumber_air", "foreignField": "_id", "as": "jenis_sumber_air" } },
             # Join ke regencies (kabupaten)
-            {
-                "$lookup": {
-                    "from": "regencies",
-                    "localField": "id_kabupaten",
-                    "foreignField": "id_regency",
-                    "as": "kabupaten"
-                }
-            },
-            {
-                "$unwind": {
-                    "path": "$kabupaten",
-                    "preserveNullAndEmptyArrays": True
-                }
-            },
+            { "$lookup": { "from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten" } },
+            { "$unwind": { "path": "$kabupaten", "preserveNullAndEmptyArrays": True } },
             # Join ke provinces (provinsi)
-            {
-                "$lookup": {
-                    "from": "provinces",
-                    "localField": "kabupaten.province_id",
-                    "foreignField": "id_province",
-                    "as": "provinsi"
-                }
-            },
-            {
-                "$unwind": {
-                    "path": "$provinsi",
-                    "preserveNullAndEmptyArrays": True
-                }
-            },
+            { "$lookup": { "from": "provinces", "localField": "kabupaten.province_id", "foreignField": "id_province", "as": "provinsi" } },
+            { "$unwind": { "path": "$provinsi", "preserveNullAndEmptyArrays": True } },
             # Join ke upaya peningkatan
-            {
-                "$lookup": {
-                    "from": "upaya_peningkatan",
-                    "localField": "upaya_peningkatan",
-                    "foreignField": "_id",
-                    "as": "upaya_peningkatan"
-                }
-            },
+            { "$lookup": { "from": "upaya_peningkatan", "localField": "upaya_peningkatan", "foreignField": "_id", "as": "upaya_peningkatan" } },
             # Exclude timestamps
-            {
-                "$project": {
-                    "createdAt": 0,
-                    "updatedAt": 0
-                }
-            }
+            { "$project": { "createdAt": 0, "updatedAt": 0 } }
         ]
 
         # Jalankan pipeline
@@ -270,7 +268,7 @@ def get_sumber_air_lookup():
         return jsonify({"error": str(e)}), 500
 
 # READ (GET by ID) - Mendapatkan data berdasarkan ID
-@routes.route('/api/sumber_air_lookup/<id>', methods=['GET'])
+@routes.route('/api/sumber_air_lookup_by_id/<id>', methods=['GET'])
 def get_sumber_air_lookup_by_id(id):
     try:
         # Validasi apakah id valid sebagai ObjectId
@@ -281,66 +279,19 @@ def get_sumber_air_lookup_by_id(id):
 
         pipeline = [
             # Filter by id
-            {
-                "$match": {
-                    "_id": object_id
-                }
-            },
+            { "$match": { "_id": object_id }},
             # Join ke jenis_sumber_air
-            {
-                "$lookup": {
-                    "from": "jenis_sumber_air",
-                    "localField": "id_jenis_sumber_air",
-                    "foreignField": "_id",
-                    "as": "jenis_sumber_air"
-                }
-            },
+            {"$lookup": { "from": "jenis_sumber_air", "localField": "id_jenis_sumber_air", "foreignField": "_id", "as": "jenis_sumber_air"}},
             # Join ke regencies (kabupaten)
-            {
-                "$lookup": {
-                    "from": "regencies",
-                    "localField": "id_kabupaten",
-                    "foreignField": "id_regency",
-                    "as": "kabupaten"
-                }
-            },
-            {
-                "$unwind": {
-                    "path": "$kabupaten",
-                    "preserveNullAndEmptyArrays": True
-                }
-            },
+            { "$lookup": { "from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten"}},
+            { "$unwind": {"path": "$kabupaten", "preserveNullAndEmptyArrays": True}},
             # Join ke provinces (provinsi)
-            {
-                "$lookup": {
-                    "from": "provinces",
-                    "localField": "kabupaten.province_id",
-                    "foreignField": "id_province",
-                    "as": "provinsi"
-                }
-            },
-            {
-                "$unwind": {
-                    "path": "$provinsi",
-                    "preserveNullAndEmptyArrays": True
-                }
-            },
+            { "$lookup": {"from": "provinces", "localField": "kabupaten.province_id", "foreignField": "id_province", "as": "provinsi"}},
+            { "$unwind": { "path": "$provinsi", "preserveNullAndEmptyArrays": True }},
             # Join ke upaya peningkatan
-            {
-                "$lookup": {
-                    "from": "upaya_peningkatan",
-                    "localField": "upaya_peningkatan",
-                    "foreignField": "_id",
-                    "as": "upaya_peningkatan"
-                }
-            },
+            { "$lookup": { "from": "upaya_peningkatan", "localField": "upaya_peningkatan", "foreignField": "_id", "as": "upaya_peningkatan"}},
             # Exclude timestamps
-            {
-                "$project": {
-                    "createdAt": 0,
-                    "updatedAt": 0
-                }
-            }
+            { "$project": {"createdAt": 0, "updatedAt": 0}}
         ]
 
         # Jalankan pipeline

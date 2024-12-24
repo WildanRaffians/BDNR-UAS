@@ -9,7 +9,7 @@
     if (isset($_GET['id_sumber_air'])) {
         $id = ($_GET["id_sumber_air"]);
         // URL endpoint API
-        $urlDetailSumberAir = "http://localhost:5000/api/sumber_air_lookup/" . urlencode($id);
+        $urlDetailSumberAir = "http://localhost:5000/api/sumber_air_lookup_by_id/" . urlencode($id);
         
         $detailSumberAir = json_decode(file_get_contents($urlDetailSumberAir), true);    
     
@@ -78,7 +78,7 @@ https://templatemo.com/tm-590-topic-listing
                             </li>
 
                             <li class="nav-item" >
-                                <a class="nav-link"  href="topics-listing.php#list" >List Upaya Pelestarian</a>
+                                <a class="nav-link"  href="upaya-listing.php#list" >List Upaya Pelestarian</a>
                             </li>
                         </ul>
 
