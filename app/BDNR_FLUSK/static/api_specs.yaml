@@ -257,6 +257,269 @@ paths:
           description: "Permintaan tidak valid"
         '500':
           description: "Kesalahan server"
+        
+  /api/sumber_air_create:
+    post:
+      summary: Add a new sumber air
+      description: This endpoint adds a new sumber air to the database.
+      operationId: addWater
+      tags:
+        - Sumber Air
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_sumber_air:
+                  type: string
+                  description: The name of the water source.
+                  example: "Waduk Jati Luhur"
+                kondisi_sumber_air:
+                  type: string
+                  description: The condition of the water source.
+                  example: "Rusak Sedang"
+                suhu:
+                  type: number
+                  description: The temperature of the water source.
+                  example: 26
+                warna:
+                  type: string
+                  description: The color of the water.
+                  example: "Keruh"
+                ph:
+                  type: number
+                  description: The pH level of the water.
+                  example: 7.6
+                kelayakan:
+                  type: string
+                  description: The feasibility of the water source.
+                  example: "Tidak"
+                id_jenis_sumber_air:
+                  type: string
+                  description: The type of the water source.
+                  example: "6766da641f686546f26c201a"
+                id_kabupaten:
+                  type: string
+                  description: The ID of the associated regency.
+                  example: "3214"
+                foto_sumber_air:
+                  type: string
+                  description: The filename of the water source photo.
+                  example: "foto_waduk_jatiluhur.jpg"
+                upaya_peningkatan:
+                  type: array
+                  items:
+                    type: string
+                  description: A list of improvement efforts related to the water source.
+                  example: ["Pengelolaan Sumber Daya Alam", "Peningkatan Infrastruktur"]
+      responses:
+        '201':
+          description: Sumber air created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sumber air added successfully"
+                  id:
+                    type: string
+                    description: The ID of the created sumber air
+                    example: "6766d9341f686546f26c1fd7"
+        '400':
+          description: Bad request - Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Missing required fields"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error message from server"
+
+  /api/sumber_air_update/{id}:
+    put:
+      summary: Update an existing sumber air
+      description: This endpoint updates an existing sumber air in the database.
+      operationId: updateWater
+      tags:
+        - Sumber Air
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the sumber air to update.
+          schema:
+            type: string
+            example: "6766d9341f686546f26c1fd7"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nama_sumber_air:
+                  type: string
+                  description: The name of the water source.
+                  example: "Waduk Jati Luhur Updated"
+                kondisi_sumber_air:
+                  type: string
+                  description: The condition of the water source.
+                  example: "Rusak Berat"
+                suhu:
+                  type: number
+                  description: The temperature of the water source.
+                  example: 27
+                warna:
+                  type: string
+                  description: The color of the water.
+                  example: "Keruh"
+                ph:
+                  type: number
+                  description: The pH level of the water.
+                  example: 7.8
+                kelayakan:
+                  type: string
+                  description: The feasibility of the water source.
+                  example: "Layak"
+                id_jenis_sumber_air:
+                  type: string
+                  description: The type of the water source.
+                  example: "6766da641f686546f26c201a"
+                id_kabupaten:
+                  type: string
+                  description: The ID of the associated regency.
+                  example: "3214"
+                foto_sumber_air:
+                  type: string
+                  description: The filename of the water source photo.
+                  example: "foto_waduk_jatiluhur_updated.jpg"
+                upaya_peningkatan:
+                  type: array
+                  items:
+                    type: string
+                  description: A list of improvement efforts related to the water source.
+                  example: ["Pengelolaan Sumber Daya Alam", "Peningkatan Infrastruktur"]
+      responses:
+        '200':
+          description: Sumber air updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sumber air updated successfully"
+                  id:
+                    type: string
+                    description: The ID of the updated sumber air
+                    example: "6766d9341f686546f26c1fd7"
+        '400':
+          description: Bad request - Missing required fields or invalid ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid ID format or missing required fields"
+        '404':
+          description: Sumber air not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Sumber air not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error message from server"
+  
+  /api/sumber_air_delete/{id}:
+    delete:
+      summary: Delete a sumber air
+      description: This endpoint deletes a sumber air from the database.
+      operationId: deleteWater
+      tags:
+        - Sumber Air
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the sumber air to delete.
+          schema:
+            type: string
+            example: "6766d9341f686546f26c1fd7"
+      responses:
+        '200':
+          description: Sumber air deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Sumber air deleted successfully"
+                  id:
+                    type: string
+                    description: The ID of the deleted sumber air
+                    example: "6766d9341f686546f26c1fd7"
+        '400':
+          description: Bad request - Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid ID format"
+        '404':
+          description: Sumber air not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Sumber air not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error message from server"
 
   /protected:
     get:
