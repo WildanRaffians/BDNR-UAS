@@ -1,107 +1,132 @@
 <?php
-    session_start();
-    function checkToken($token) {
-        $url = "http://localhost:5000/protected"; // Endpoint Flask untuk verifikasi token
-    
-        // Buat cURL request
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $token, // Kirim token di header
-            'Content-Type: application/json'
-        ]);
-    
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-    
-        return $httpcode === 200; // Token valid jika status code 200
-    }
-    
-    
-    // Ambil token dari session atau cookie
-    $token = $_SESSION['token'] ?? null;
-    
-    if (!$token || !checkToken($token)) {
-        // Token tidak valid atau tidak ditemukan
-        header("Location: login.php"); // Arahkan ke halaman login
-        exit;
-    }
-    include('function.php');
-    $listSumberAir = readSumberAir();
-    global $conn;
+session_start();
 
-    $r_jenis = readTable('jenis_sumber_air');
-    // $r_wilayah = readTable('wilayah');
-    $r_provincies = readTable('provinces');
-    $r_regencies = readTable('regencies');
-    $r_upaya = readTable('upaya_peningkatan_ketersediaan_air');
-    // echo '<pre>';
-    // print_r($r_jenis);
+function checkToken($token) {
+    $url = "http://localhost:5000/protected";
 
-    // foreach($r_jenis as $jenis) {
-    //     echo $jenis['nama_jenis_sumber_air'];
-    // }
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $token,
+        'Content-Type: application/json'
+    ]);
 
-    // echo "<br>";
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-    if(isset($_GET['id_sumber_air'])) {
-        $id = ($_GET["id_sumber_air"]);
-        $result = readOneSumberAir($id);
-        $current = mysqli_fetch_assoc($result);
+    return $httpcode === 200;
+}
+
+$token = $_SESSION['token'] ?? null;
+
+if (!$token || !checkToken($token)) {
+    header("Location: login.php");
+    exit;
+}
+
+// Buat URL lengkap dengan path parameter
+$urlJenisSumberAir = 'http://localhost:5000/api/jensisSA';
+$urlUpaya = "http://localhost:5000/api/upaya"; // Endpoint GET all
+$urlProvince = "http://localhost:5000/api/provinsi";
+$urlKabupaten = "http://localhost:5000/api/kabupaten";
+
+if (isset($_GET['id_sumber_air'])) {
+    $id = ($_GET["id_sumber_air"]);
+    // URL endpoint API
+    $urlDetailSumberAir = "http://localhost:5000/api/sumber_air_lookup_by_id/" . urlencode($id);
+    
+    $current = json_decode(file_get_contents($urlDetailSumberAir), true);  
+    
+    $checkedUpaya = $current['upaya_peningkatan'];
+    
+}
+
+// Mengambil data Upaya dari API
+$r_upaya = json_decode(file_get_contents($urlUpaya), true);
+
+
+// Mengambil data Upaya dari API
+$r_jenis = json_decode(file_get_contents($urlJenisSumberAir), true);
+
+// Mengambil data provinsi dari API
+$r_provincies = json_decode(file_get_contents($urlProvince), true);
+
+// mengambil data kabupaten dari API
+// Mengambil data Upaya dari API
+$r_regencies = json_decode(file_get_contents($urlKabupaten), true);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit-update'])) {
+    $idSumberAir = $_POST['id_sumber_air']; // ID of the water source to update
+    $namaSumberAir = $_POST['nama_sumber_air'];
+    $kondisiSumberAir = $_POST['kondisi'];
+    $suhu = $_POST['suhu'];
+    $warna = $_POST['warna'];
+    $ph = $_POST['pH'];
+    $kelayakan = $_POST['layak_minum'];
+    $idJenisSumberAir = $_POST['jenis_sumber_air'];
+    $idKabupaten = $_POST['kabupaten'];
+    
+    // Periksa apakah file gambar baru diunggah
+    $fotoSumberAir = null; // Nilai default untuk gambar
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        // Proses file baru yang diunggah
+        $fileTmpPath = $_FILES['image']['tmp_name'];
+        $fileName = $_FILES['image']['name'];
+        $uploadDir = 'uploads/';
+        $destFilePath = $uploadDir . basename($fileName);
         
-
-        // echo "<pre>";
-        // print_r($current);
-        // echo "<br>";
-        // foreach($r_jenis as $jenis) {
-        //     print_r($jenis);
-        // }
-
-        $c_upaya = readCheckedUpaya($id);
-        $checkedUpaya = [];
-        foreach($c_upaya as $u) {
-            $checkedUpaya[] = $u['id_upaya_peningkatan_ketersediaan_air'];
-        }
-
-        //print_r($checkedUpaya);
-        
-
-        if (!count($current)) {
-            echo "<script>alert('Data tidak ditemukan pada database');window.location='admin.php';</script>";
+        if (move_uploaded_file($fileTmpPath, $destFilePath)) {
+            $fotoSumberAir = $destFilePath; // Gunakan file baru jika berhasil diunggah
+        } else {
+            echo "There was an error uploading the file.";
         }
     } else {
-  echo "<script>alert('Masukkan data id.');window.location='admin.php';</script>";
+        // Jika tidak ada file baru, ambil nilai foto dari database
+        $fotoSumberAir = $current['foto_sumber_air'];
+    }
+
+    
+    $upayaPeningkatan = isset($_POST['listUpaya']) ? $_POST['listUpaya'] : [];
+    
+    $data = [
+        "_id" => $idSumberAir,
+        "nama_sumber_air" => $namaSumberAir,
+        "kondisi_sumber_air" => $kondisiSumberAir,
+        "suhu" => $suhu,
+        "warna" => $warna,
+        "ph" => $ph,
+        "kelayakan" => $kelayakan,
+        "id_jenis_sumber_air" => $idJenisSumberAir,
+        "id_kabupaten" => $idKabupaten,
+        "foto_sumber_air" => $fotoSumberAir,
+        "upaya_peningkatan" => $upayaPeningkatan,
+    ];
+    
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/json\r\n",
+            'method'  => 'PUT', // Use PUT for update
+            'content' => json_encode($data),
+        ],
+    ];
+    
+    $context  = stream_context_create($options);
+    $urlWaterUpdate = "http://localhost:5000/api/sumber_air_update"; // Ganti dengan ID
+    $response = file_get_contents("$urlWaterUpdate/$idSumberAir", false, $context);
+
+    if ($response) {
+        $responseData = json_decode($response, true);
+        if ($responseData) {
+            header("Location: admin.php");
+            exit;
+        } else {
+            echo "Failed to update water source.";
+        }
+    } else {
+        echo "Error in API request.";
+    }
 }
-
-if (isset($_POST['submit-update'])) {
-
-    $listUpaya = $_POST['listUpaya'];
-
-  // jalankan query tambah record baru
-  $isAddSucceed = updateWater($_POST, $_FILES, $listUpaya);
-  
-  if ($isAddSucceed > 0) {
-    // jika penambahan sukses, tampilkan alert
-    echo "
-          <script>
-              
-              alert('Data Berhasil di update');
-              document.location.href = 'admin.php';
-          </script>
-      ";
-  } else {
-    echo "
-          <script>
-          alert('Tidak Ada Data yang diperbarui !');
-          document.location.href = 'admin.php';
-          </script>
-          ";
-  }
-}
-
-// print_r($r_jenis);
-// echo $isAddSucceed;
 ?>
 
 <!doctype html>
@@ -204,7 +229,6 @@ https://templatemo.com/tm-590-topic-listing
             <section class="section-padding section-bg">
                 <div class="container">
                     <div class="row">
-
                         <div class="col-lg-12 col-12">
                             <h3 class="mb-4 pb-2">Update Data <?=$current['nama_sumber_air']?></h3>
                         </div>
@@ -213,7 +237,7 @@ https://templatemo.com/tm-590-topic-listing
 
                         <div class="col-lg-6 col-12">
                             <form action="#" method="post" class="custom-form contact-form" role="form" id="form-update" enctype="multipart/form-data">
-                                 <input type="hidden" name="id_sumber_air" id="id_sumber_air" value="<?=$current['id_sumber_air']?>">
+                                 <input type="hidden" name="id_sumber_air" id="id_sumber_air" value="<?=$current['_id']?>">
                                 <div class="row">
                                     <div class="col-lg-12 col-12">
                                         <div class="form-floating">
@@ -223,21 +247,6 @@ https://templatemo.com/tm-590-topic-listing
                                         </div>
                                     </div>
 
-                                    <!-- <div class="col-lg-4 col-md-6 col-12">
-                                        <div class="form-floating">
-                                            <select name="wilayah" class="form-select" style="padding-top: 0px;padding-bottom: 0px;margin-bottom: 30px;" aria-label="Default select example">
-                                            <option value="" disabled>Wilayah</option>
-                                                <?php
-                                                    foreach($r_wilayah as $wilayah) {
-                                                ?>
-                                                    <option <?php if($wilayah['id_wilayah'] == $current['id_wilayah']) echo "selected"; ?> value="<?=$wilayah['id_wilayah']?>"> <?=$wilayah['id_wilayah']?> - <?=$wilayah['nama_wilayah']?></option>
-                                                <?php  
-                                                    }
-                                                ?>
-                                            </select>
-                                        </div>
-                                    </div> -->
-
                                     <h6>Wilayah</h6>
                                     <div class="col-lg-6 col-md-6 col-12"> 
                                         <div class="form-floating">
@@ -245,7 +254,7 @@ https://templatemo.com/tm-590-topic-listing
                                             <?php
                                                     foreach($r_provincies as $provinsi) {
                                                 ?>
-                                                    <option <?php if($provinsi['id'] == $current['province_id']) echo "selected"; ?> value="<?=$provinsi['id']?>"> <?=$provinsi['id']?> - <?=$provinsi['provinces_name']?></option>
+                                                    <option <?php if($provinsi['id_province'] == $current['provinsi']['id_province']) echo "selected"; ?> value="<?=$provinsi['id_province']?>"> - <?=$provinsi['name']?></option>
                                             
                                             <?php  
                                                     }
@@ -257,23 +266,14 @@ https://templatemo.com/tm-590-topic-listing
                                     <div class="col-lg-6 col-md-6 col-12"> 
                                         <div class="form-floating">
                                             <select name="kabupaten" id="kabupaten" class="form-select" style="padding-top: 0px;padding-bottom: 0px;margin-bottom: 30px;" aria-label="Default select example">
-                                            <!-- <?php
+                                            <?php
                                                     foreach($r_regencies as $kabupaten) {
                                                 ?>
-                                                    <option <?php if($kabupaten['id'] == $current['id_kabupaten']) echo "selected"; ?> value="<?=$kabupaten['id']?>"> <?=$kabupaten['id']?> - <?=$kabupaten['name']?></option>
+                                                    <option <?php if($kabupaten['id_regency'] == $current['kabupaten']['id_regency']) echo "selected"; ?> value="<?=$kabupaten['id_regency']?>"> - <?=$kabupaten['name']?></option>
                                             
                                             <?php  
                                                     }
-                                                ?> -->
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <!-- <h6>Wilayah</h6>
-                                    <div class="col-lg-6 col-md-6 col-12"> 
-                                        <div class="form-floating">
-                                            <select name="provinsi" id="provinsi" class="form-select" style="padding-top: 0px;padding-bottom: 0px;margin-bottom: 30px;" aria-label="Default select example">
-                                                    <option disabled selected>Provinsi</option>
+                                                ?> 
                                             
                                             </select>
                                         </div>
@@ -281,21 +281,12 @@ https://templatemo.com/tm-590-topic-listing
 
                                     <div class="col-lg-6 col-md-6 col-12"> 
                                         <div class="form-floating">
-                                            <select name="kabupaten" id="kabupaten" class="form-select" style="padding-top: 0px;padding-bottom: 0px;margin-bottom: 30px;" aria-label="Default select example">
-                                                    <option disabled selected>Kabupaten</option>
-                                            
-                                            </select>
-                                        </div>
-                                    </div> -->
-
-                                    <div class="col-lg-6 col-md-6 col-12"> 
-                                        <div class="form-floating">
-                                            <select name="jenis_sumber_air" class="form-select" style="padding-top: 0px;padding-bottom: 0px;margin-bottom: 30px;" aria-label="Default select example">
-                                            <option value="" disabled>Jenis Sumber Air</option>
+                                        <select name="jenis_sumber_air" class="form-select" style="padding-top: 0px;padding-bottom: 0px;margin-bottom: 30px;" aria-label="Default select example">
+                                        <option value="" disabled>Jenis Sumber Air</option>
                                             <?php
                                                     foreach($r_jenis as $jenis) {
                                                 ?>
-                                                    <option <?php if($jenis['id_jenis_sumber_air'] == $current['id_jenis_sumber_air']) echo "selected"; ?> value="<?=$jenis['id_jenis_sumber_air']?>"> <?=$jenis['id_jenis_sumber_air']?> - <?=$jenis['nama_jenis_sumber_air']?></option>
+                                                    <option <?php if($jenis['_id'] == $current['_id']) echo "selected"; ?> value="<?=$jenis['_id']?>"> - <?=$jenis['nama_jenis_sumber_air']?></option>
                                                 <?php  
                                                     }
                                                 ?>
@@ -315,7 +306,6 @@ https://templatemo.com/tm-590-topic-listing
                                             </select>
                                         </div>
                                     </div>
-
                                     <div class="col-lg-6 col-md-6 col-12">
                                         <div class="form-floating" >
                                             <input name="suhu" type="range" class="form-range" min="0" max="1000" value="<?=$current['suhu'] * 10.0?>" id="suhu" style="padding-bottom: 40px;" oninput="this.nextElementSibling.value = this.value">
@@ -326,10 +316,11 @@ https://templatemo.com/tm-590-topic-listing
 
                                     <div class="col-lg-6 col-md-6 col-12"> 
                                         <div class="form-floating">
-                                            <input name="pH" type="range" class="form-range" min="0" max="140" value="<?=$current['pH'] * 10.0?>" id="pH" style="padding-bottom: 40px;" oninput="this.nextElementSibling.value = this.value">
+                                            <input name="pH" type="range" class="form-range" min="0" max="140" value="<?=$current['ph'] * 10.0?>" id="pH" style="padding-bottom: 40px;" oninput="this.nextElementSibling.value = this.value">
                                             <label for="customRange2" class="form-label">pH : <span id="outputpH"></span></label>
                                         </div>
                                     </div>
+
 
                                     <div class="col-lg-12 col-12"> 
                                         
@@ -366,14 +357,14 @@ https://templatemo.com/tm-590-topic-listing
                                                     <p>Kelayakan Minum</p>
                                                 </div>
                                                 <div style="float:left; margin: 3px 5px 0px 5px">
-                                                    <input class="form-check-input" type="radio" name="layak_minum" id="layak_minum1" value="Layak" <?php if($current['layak_minum'] == "Layak") echo "checked";?>>
+                                                    <input class="form-check-input" type="radio" name="layak_minum" id="layak_minum1" value="Layak" <?php if($current['kelayakan'] == "Layak") echo "checked";?>>
                                                     <label class="form-check-label" for="layak_minum1">
                                                         Layak
                                                     </label>
                                                 </div>
                                                 <div style="float:left; margin: 3px 5px 0px 5px">
                                                     <div class="form-check" style="margin-left: 59px">
-                                                        <input class="form-check-input" type="radio" name="layak_minum" id="layak_minum2" value="Tidak" <?php if($current['layak_minum'] == "Tidak") echo "checked";?>>
+                                                        <input class="form-check-input" type="radio" name="layak_minum" id="layak_minum2" value="Tidak" <?php if($current['kelayakan'] == "Tidak") echo "checked";?>>
                                                         <label class="form-check-label" for="layak_minum2">
                                                             Tidak Layak
                                                         </label>
@@ -393,10 +384,10 @@ https://templatemo.com/tm-590-topic-listing
                                         <input 
                                         class="form-check-input" 
                                         type="checkbox" id="inlineCheckbox1" 
-                                        value="<?=$upaya['id_upaya_ketersediaan_air']?>" 
+                                        value="<?=$upaya['_id']?>" 
                                         name="listUpaya[]"
                                             <?php
-                                                if(in_array($upaya['id_upaya_ketersediaan_air'], $checkedUpaya))
+                                                if(in_array($upaya['nama_upaya'], $checkedUpaya))
                                                 echo "checked";
                                             ?>
                                         >
@@ -424,7 +415,6 @@ https://templatemo.com/tm-590-topic-listing
                                     </div>
 
                                 </div>
-
                                 
                                 
                             </div>
@@ -552,6 +542,7 @@ https://templatemo.com/tm-590-topic-listing
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 
 
+	
 	<script type="text/javascript">
 		$(document).ready(function() {
 			// hilangkan label dan tag select yang belum dibutuhkan

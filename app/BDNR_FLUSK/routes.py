@@ -424,10 +424,49 @@ def update_water(id):
         if not data:
             return jsonify({"error": "No data provided for update"}), 400
 
+        # Define the required fields and their expected types
+        required_fields = {
+            "nama_sumber_air": str,
+            "kondisi_sumber_air": str,
+            "suhu": int,
+            "warna": str,
+            "ph": float,
+            "kelayakan": str,
+            "id_jenis_sumber_air": ObjectId,
+            "id_kabupaten": int,
+        }
+
+        # Validate and convert data
+        try:
+            validated_data = {}
+            for field, field_type in required_fields.items():
+                if field in data and data[field]:
+                    if field == "suhu":
+                        # Convert to int and divide by 10
+                        validated_data[field] = int(data[field]) / 10
+                    elif field == "ph":
+                        # Convert to float and divide by 10
+                        validated_data[field] = float(data[field]) / 10
+                    elif field_type == ObjectId:
+                        validated_data[field] = ObjectId(data[field])
+                    else:
+                        validated_data[field] = field_type(data[field])
+            
+            # Optional fields
+            if 'foto_sumber_air' in data:
+                validated_data['foto_sumber_air'] = str(data['foto_sumber_air'])
+            if 'upaya_peningkatan' in data:
+                upaya_peningkatan_raw = data.get('upaya_peningkatan', [])
+                validated_data['upaya_peningkatan'] = [
+                    ObjectId(upaya) for upaya in upaya_peningkatan_raw
+                ]
+        except Exception as e:
+            return jsonify({"error": f"Invalid data type: {str(e)}"}), 400
+
         # Update the document in MongoDB
         result = mongo.sumber_air.update_one(
             {"_id": object_id},  # Filter by the object ID
-            {"$set": data}  # Update the fields with new data
+            {"$set": validated_data}  # Update the fields with new data
         )
 
         if result.matched_count == 0:
@@ -437,6 +476,7 @@ def update_water(id):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 #DELETE (DELETE by ID Sumber_air) - Delete data sumber air
 @routes.route('/api/sumber_air_delete/<id>', methods=['DELETE'])

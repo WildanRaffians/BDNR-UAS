@@ -7,9 +7,12 @@
 
 
     $id = $_GET['id'];
-    if ($id > 0) {
+   
+
         
-        $isDeleteSucceed = deleteWater($id); 
+        $urlWaterUpdate = "http://localhost:5000/api/sumber_air_delete"; // Ganti dengan ID
+        $isDeleteSucceed = file_get_contents("$urlWaterUpdate/$id", false, $context);
+        //$isDeleteSucceed = deleteWater($id); 
         if ($isDeleteSucceed > 0) {
         echo "
         <script>
@@ -25,5 +28,5 @@
         </script>
         ";
     }
-    }
+    
 ?>
