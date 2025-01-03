@@ -53,7 +53,7 @@
         $idKabupaten = $_POST['kabupaten'];
     
         // Handle file upload
-        $fotoSumberAir = null; // Default if no file uploaded
+        $fotoSumberAir = "default.png"; // Default if no file uploaded
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             // Get file details
             $fileTmpPath = $_FILES['image']['tmp_name'];
@@ -62,12 +62,12 @@
             $fileType = $_FILES['image']['type'];
             
             // Specify upload directory
-            $uploadDir = 'uploads/';
+            $uploadDir = 'images/foto_sumber_air/';
             $destFilePath = $uploadDir . basename($fileName);
     
             // Move the uploaded file to the target directory
             if (move_uploaded_file($fileTmpPath, $destFilePath)) {
-                $fotoSumberAir = $destFilePath; // Set the path to the uploaded file
+                $fotoSumberAir = $fileName; // Set the path to the uploaded file
             } else {
                 // Handle file upload error
                 echo "There was an error uploading the file.";

@@ -368,9 +368,9 @@ def add_water():
         try:
             nama_sumber_air = str(data['nama_sumber_air'])
             kondisi_sumber_air = str(data['kondisi_sumber_air'])
-            suhu = int(data['suhu'])
+            suhu = int(data['suhu'])/10
             warna = str(data['warna'])
-            ph = float(data['ph'])
+            ph = float(data['ph'])/10
             kelayakan = str(data['kelayakan'])
             id_jenis_sumber_air = ObjectId(data['id_jenis_sumber_air'])
             id_kabupaten = int(data['id_kabupaten'])
