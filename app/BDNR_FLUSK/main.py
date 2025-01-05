@@ -1,9 +1,11 @@
 from flask import Flask
 from flask_swagger_ui import get_swaggerui_blueprint
 from routes import routes
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.secret_key = 'sha256'
+CORS(app)
 # Swagger UI
 SWAGGER_URL = '/swagger'
 API_URL = '/static/api_specs.yaml'
