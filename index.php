@@ -108,6 +108,10 @@ foreach ($slides as $url) {
                         </li>
 
                         <li class="nav-item">
+                            <a class="nav-link " href="dashboard.php#chart">Dashboard</a>
+                        </li>
+                        
+                        <li class="nav-item">
                             <a class="nav-link " href="topics-listing.php#section_1">List Sumber Air</a>
                         </li>
 

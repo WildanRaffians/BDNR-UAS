@@ -66,6 +66,10 @@ $totalPages = ceil($totalData / $limit);
                         <li class="nav-item">
                             <a class="nav-link click-scroll" href="index.php">Home</a>
                         </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link " href="dashboard.php#chart">Dashboard</a>
+                        </li>
 
                         <li class="nav-item">
                             <a class="nav-link active" href="topics-listing.php#section_1">List Sumber Air</a>

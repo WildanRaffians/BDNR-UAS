@@ -188,6 +188,10 @@ https://templatemo.com/tm-590-topic-listing
                         <li class="nav-item">
                             <a class="nav-link click-scroll" href="index.php">Home</a>
                         </li>
+                        
+                        <li class="nav-item">
+                            <a class="nav-link " href="dashboard.php#chart">Dashboard</a>
+                        </li>
 
                         <li class="nav-item">
                             <a class="nav-link " href="topics-listing.php">List Sumber Air</a>

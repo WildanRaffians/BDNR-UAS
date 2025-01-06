@@ -72,6 +72,10 @@
                         </li>
 
                         <li class="nav-item">
+                            <a class="nav-link active " href="dashboard.php#chart">Dashboard</a>
+                        </li>
+
+                        <li class="nav-item">
                             <a class="nav-link" href="topics-listing.php#section_1">List Sumber Air</a>
                         </li>
 
@@ -108,9 +112,16 @@
                 </div>
             </div>
         </header>
+        <div class="container" id="chart">
+            <br>
+            <br>
+        </div>
 
         <!-- CHART -->
-        <div class="container py-5">
+        <div class="container py-5" >
+            <div class="col-lg-12 col-12 text-center" >
+                <h3 class="mb-4">Statistik Sumber Air</h3>
+            </div>
             <!-- Bagian Atas -->
             <div class="row text-center mb-4">
                 <div class="col-md-2">
@@ -121,7 +132,7 @@
                 </div>
                 <div class="col-md-2">
                     <div class="card">
-                        <h5>Jumlah Kabupaten</h5>
+                        <h5>Jumlah Wilayah</h5>
                         <h2 id="jumlahKabupaten">0</h2>
                     </div>
                 </div>
@@ -139,8 +150,8 @@
                 </div>
                 <div class="col-md-2">
                     <div class="card">
-                    <h5>Jumlah Upaya</h5>
-                    <h2 id="jumlahUpaya">0</h2>
+                        <h5>Jumlah Upaya</h5>
+                        <h2 id="jumlahUpaya">0</h2>
                     </div>
                 </div>
                 <div class="col-md-2">
@@ -305,7 +316,7 @@
                     datasets: [{
                         label: 'Jumlah Sumber Air',
                         data: kondisiValues,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.67)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
                     }]
@@ -345,7 +356,7 @@
                     datasets: [{
                         label: 'Jumlah Sumber Air',
                         data: jenisValues,
-                        backgroundColor: 'rgba(75, 122, 192, 0.2)',
+                        backgroundColor: 'rgba(75, 122, 192, 0.63)',
                         borderColor: 'rgb(75, 116, 192)',
                         borderWidth: 1
                     }]
@@ -377,7 +388,7 @@
                     labels: Object.keys(kelayakanCounts),
                     datasets: [{
                         data: Object.values(kelayakanCounts),
-                        backgroundColor: ['rgba(54, 235, 166, 0.2)', 'rgba(255, 99, 177, 0.2)'],
+                        backgroundColor: ['rgba(54, 235, 166, 0.63)', 'rgba(255, 99, 177, 0.68)'],
                         borderColor: ['rgb(54, 235, 117)', 'rgba(255, 99, 132, 1)'],
                         borderWidth: 1
                     }]
@@ -399,7 +410,7 @@
             // Warna Sumber Air
             const warnaCounts = {
                 "bening": data.filter(item => item.warna === "Bening").length,
-                "keruh": data.filter(item => item.warna === "Keruh").length
+                "keruh": data.filter(item => item.warna === "Keruh").length,
             };
 
             new Chart(document.getElementById('warnaChart'), {
@@ -408,7 +419,7 @@
                     labels: Object.keys(warnaCounts),
                     datasets: [{
                         data: Object.values(warnaCounts),
-                        backgroundColor: ['rgba(54, 162, 235, 0.2)', 'rgba(255, 180, 99, 0.2)'],
+                        backgroundColor: ['rgba(54, 163, 235, 0.65)', 'rgba(255, 180, 99, 0.67)'],
                         borderColor: ['rgba(54, 162, 235, 1)', 'rgb(255, 161, 99)'],
                         borderWidth: 1
                     }]
