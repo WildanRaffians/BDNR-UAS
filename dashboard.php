@@ -26,22 +26,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .card {
-            background-color: #e7f5ff;
-            /* Warna latar biru muda */
+            /* width: 100%; */
+            /* Pastikan kartu memenuhi kolom */
+            /* max-width: 250px; */
+            /* Ukuran maksimum kartu */
+            min-height: 150px;
+            background-color: rgb(255, 255, 255);
+            border: none;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
             text-align: center;
-        }
-
-        .card img {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 10px;
-        }
-
-        .chart-container {
-            padding: 10px;
         }
     </style>
 </head>
@@ -118,12 +113,16 @@
         </div>
 
         <!-- CHART -->
-        <div class="container py-5" >
-            <div class="col-lg-12 col-12 text-center" >
+        <div class="container py-5 center">
+            <div class="col-lg-12 col-12 text-center">
                 <h3 class="mb-4">Statistik Sumber Air</h3>
             </div>
-            <!-- Bagian Atas -->
-            <div class="row text-center mb-4">
+            <!-- <a type="button" class="btn btn-primary btn-sm" href="#chart">Total</a>
+            <a type="button" class="btn btn-secondary btn-sm" href="#chart">Wilayah</a>
+            <a type="button" class="btn btn-secondary btn-sm" href="#chart">Peta</a>
+            <br><br><br> -->
+            <!-- Baris 1: Ringkasan -->
+            <div class="row ringkasan mb-4" style="justify-content: center;">
                 <div class="col-md-2">
                     <div class="card">
                         <h5>Jumlah Sumber Air</h5>
@@ -154,44 +153,37 @@
                         <h2 id="jumlahUpaya">0</h2>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="card"></div>
-                </div>
             </div>
 
-            <!-- Baris Kedua: Chart Pie -->
-            <div class="row text-center mb-4">
-                <div class="col-md-4">
-                    <div class="card chart-container">
-                        <canvas id="kelayakanChart"></canvas>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card chart-container">
-                        <canvas id="warnaChart"></canvas>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card chart-container">
-                        <canvas id="chartPie3"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Baris Ketiga: Chart Bar -->
-            <div class="row text-center">
-                <div class="col-md-6">
+            <!-- Baris 2: Bar Chart dan Pie Chart -->
+            <div class="row charts mb-4" style="justify-content: center;">
+                <div class="col-md-4" style="width: 60%;">
                     <div class="card chart-container">
                         <canvas id="kondisiChart"></canvas>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4" style="width: 30%;">
+                    <div class="card chart-container">
+                        <canvas id="kelayakanChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baris 3: Pie Chart Warna -->
+            <div class="row charts" style="justify-content: center;">
+                <div class="col-md-4" style="width: 60%;">
                     <div class="card chart-container">
                         <canvas id="jenisChart"></canvas>
                     </div>
                 </div>
+                <div class="col-md-4" style="width: 30%;">
+                    <div class="card chart-container">
+                        <canvas id="warnaChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
+
     </main>
 
     <footer class="site-footer section-padding">

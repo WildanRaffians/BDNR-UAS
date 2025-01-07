@@ -66,7 +66,7 @@ $totalPages = ceil($totalData / $limit);
                         <li class="nav-item">
                             <a class="nav-link click-scroll" href="index.php">Home</a>
                         </li>
-                        
+
                         <li class="nav-item">
                             <a class="nav-link " href="dashboard.php#chart">Dashboard</a>
                         </li>
@@ -178,13 +178,33 @@ $totalPages = ceil($totalData / $limit);
                 </div>
                 <nav aria-label="Page navigation example">
                     <ul class="pagination justify-content-center">
+                        <!-- Tombol First -->
+                        <?php if ($page > 3): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1&keyword=<?= urlencode($keyword) ?>">&laquo;</a>
+                            </li>
+                        <?php endif; ?>
+
                         <!-- Tombol Previous -->
                         <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                             <a class="page-link" href="?page=<?= $page - 1 ?>&keyword=<?= urlencode($keyword) ?>" tabindex="-1">Previous</a>
                         </li>
 
                         <!-- Pagination Pages -->
-                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <?php
+                        $startPage = max(1, $page - 2); // Halaman awal
+                        $endPage = min($totalPages, $page + 2); // Halaman akhir
+
+                        if ($endPage - $startPage < 5) {
+                            if ($startPage > 1) {
+                                $startPage = max(1, $endPage - 5);
+                            }
+                            if ($endPage < $totalPages) {
+                                $endPage = min($totalPages, $startPage + 5);
+                            }
+                        }
+
+                        for ($i = $startPage; $i <= $endPage; $i++): ?>
                             <li class="page-item <?= $page == $i ? 'active' : '' ?>">
                                 <a class="page-link" href="?page=<?= $i ?>&keyword=<?= urlencode($keyword) ?>"><?= $i ?></a>
                             </li>
@@ -194,8 +214,16 @@ $totalPages = ceil($totalData / $limit);
                         <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
                             <a class="page-link" href="?page=<?= $page + 1 ?>&keyword=<?= urlencode($keyword) ?>">Next</a>
                         </li>
+
+                        <!-- Tombol Last -->
+                        <?php if ($page < $totalPages - 2): ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?page=<?= $totalPages ?>&keyword=<?= urlencode($keyword) ?>">&raquo;</a>
+                            </li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
+
             </div>
         </section>
 
