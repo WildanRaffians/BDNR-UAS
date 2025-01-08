@@ -117,10 +117,10 @@
             <div class="col-lg-12 col-12 text-center">
                 <h3 class="mb-4">Statistik Sumber Air</h3>
             </div>
-            <!-- <a type="button" class="btn btn-primary btn-sm" href="#chart">Total</a>
-            <a type="button" class="btn btn-secondary btn-sm" href="#chart">Wilayah</a>
-            <a type="button" class="btn btn-secondary btn-sm" href="#chart">Peta</a>
-            <br><br><br> -->
+            <a type="button" class="btn btn-primary btn-sm" href="#chart">Keseluruhan</a>
+            <a type="button" class="btn btn-secondary btn-sm" href="dashboard2.php#chart">Kategori per Provinsi</a>
+            <!-- <a type="button" class="btn btn-secondary btn-sm" href="#chart">Peta</a> -->
+            <br><br><br>
             <!-- Baris 1: Ringkasan -->
             <div class="row ringkasan mb-4" style="justify-content: center;">
                 <div class="col-md-2">

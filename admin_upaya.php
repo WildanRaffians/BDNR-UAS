@@ -37,60 +37,93 @@
     // Mengambil data Upaya dari API
     $listUpaya = json_decode(file_get_contents($urlUpaya), true);
 
-    // Fungsi CREATE (POST) Upaya
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_upaya'])) {
-        $namaUpaya = $_POST['nama_upaya'];
-        $data = ["nama_upaya" => $namaUpaya];
+// Fungsi CREATE (POST) Upaya
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_upaya'])) {
+    $namaUpaya = $_POST['nama_upaya'];
+    $data = ["nama_upaya" => $namaUpaya];
 
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/json\r\n",
-                'method'  => 'POST',
-                'content' => json_encode($data),
-            ],
-        ];
-        $context  = stream_context_create($options);
-        file_get_contents($urlUpayaCreate, false, $context);
+    $options = [
+        'http' => [
+            'header'  => "Content-type: application/json\r\n",
+            'method'  => 'POST',
+            'content' => json_encode($data),
+        ],
+    ];
+    $context = stream_context_create($options);
 
-        header("Location: admin_upaya.php");
-        exit;
+    // Eksekusi HTTP request
+    $response = file_get_contents($urlUpayaCreate, false, $context);
+    $httpResponseCode = $http_response_header[0] ?? ''; // HTTP response header
+
+    // Cek apakah request berhasil
+    if (strpos($httpResponseCode, '200') !== false || strpos($httpResponseCode, '201') !== false) {
+        $_SESSION['message'] = "Data berhasil ditambahkan!";
+        $_SESSION['message_type'] = "success"; // Tambahkan tipe untuk styling
+    } else {
+        $_SESSION['message'] = "Gagal menambahkan data!";
+        $_SESSION['message_type'] = "danger"; // Tambahkan tipe untuk styling
     }
 
-    // Fungsi UPDATE (PUT) Upaya
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_upaya'])) {
-        $idUpaya = $_POST['id_upaya'];
-        $namaUpaya = $_POST['nama_upaya'];
-        $data = ["nama_upaya" => $namaUpaya];
+    header("Location: admin_upaya.php");
+    exit;
+}
 
-        $options = [
-            'http' => [
-                'header'  => "Content-type: application/json\r\n",
-                'method'  => 'PUT',
-                'content' => json_encode($data),
-            ],
-        ];
-        $context  = stream_context_create($options);
-        file_get_contents("$urlUpayaUpdate/$idUpaya", false, $context);
+// Fungsi UPDATE (PUT) Upaya
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_upaya'])) {
+    $idUpaya = $_POST['id_upaya'];
+    $namaUpaya = $_POST['nama_upaya'];
+    $data = ["nama_upaya" => $namaUpaya]; // Menyusun data yang ingin diperbarui
 
-        header("Location: admin_upaya.php");
-        exit;
+    // Menggunakan cURL untuk PUT request
+    $ch = curl_init($urlUpayaUpdate . "/" . $idUpaya); // Menggunakan URL dengan ID
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");  // Menggunakan PUT method
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));  // Mengirimkan data yang ingin diupdate
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);  // Menambahkan header Content-Type
+
+    $response = curl_exec($ch);
+    $httpResponseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // HTTP response code
+    curl_close($ch);
+
+    // Cek apakah request berhasil
+    if ($httpResponseCode === 200 || $httpResponseCode === 201) {
+        $_SESSION['message'] = "Data berhasil Diperbaharui!";
+        $_SESSION['message_type'] = "success"; // Tambahkan tipe untuk styling
+    } else {
+        $_SESSION['message'] = "Gagal Memperbaharui data!";
+        $_SESSION['message_type'] = "danger"; // Tambahkan tipe untuk styling
     }
 
-    // Fungsi DELETE (DELETE) Upaya
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_upaya'])) {
-        $idUpaya = $_POST['id_upaya'];
+    header("Location: admin_upaya.php");
+    exit;
+}
 
-        $options = [
-            'http' => [
-                'method' => 'DELETE',
-            ],
-        ];
-        $context  = stream_context_create($options);
-        file_get_contents("$urlUpayaDelete/$idUpaya", false, $context);
+// Fungsi DELETE (DELETE) Upaya
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_upaya'])) {
+    $idUpaya = $_POST['id_upaya'];
 
-        header("Location: admin_upaya.php");
-        exit;
+    // Menggunakan cURL untuk DELETE request
+    $ch = curl_init($urlUpayaDelete . "/" . $idUpaya); // Menggunakan URL dengan ID
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");  // Menggunakan DELETE method
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);  // Menambahkan header Content-Type
+
+    $response = curl_exec($ch);
+    $httpResponseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // HTTP response code
+    curl_close($ch);
+
+    // Cek apakah request berhasil
+    if ($httpResponseCode === 200 || $httpResponseCode === 201) {
+        $_SESSION['message'] = "Data berhasil Dihapus!";
+        $_SESSION['message_type'] = "success"; // Tambahkan tipe untuk styling
+    } else {
+        $_SESSION['message'] = "Gagal Menghapus data!";
+        $_SESSION['message_type'] = "danger"; // Tambahkan tipe untuk styling
     }
+
+    header("Location: admin_upaya.php");
+    exit;
+}
 ?>
 
 <!doctype html>
@@ -183,6 +216,41 @@
                     <h1>Tabel Upaya Pelestarian Sumber Air</h1><br><br>
                     <form method="POST" id="dynamic-form">
                         <h5 id="form-title">Tambah Upaya</h5>
+                        <?php
+                        // Menampilkan pesan flash jika ada
+                        if (isset($_SESSION['message'])): ?>
+                            <div id="flash-message" class="alert alert-<?= $_SESSION['message_type'] ?> alert-dismissible fade show position-relative" role="alert">
+                                <?= $_SESSION['message'] ?>
+                                <div class="progress-bar-timer"></div> <!-- Progress bar -->
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        <?php 
+                            unset($_SESSION['message']); // Hapus pesan setelah ditampilkan
+                            unset($_SESSION['message_type']);
+                        endif;
+                        ?>
+
+                        <style>
+                            /* Styling untuk progress bar */
+                            .progress-bar-timer {
+                                position: absolute;
+                                bottom: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 4px;
+                                background-color: #007bff; /* Warna progress bar */
+                                animation: progress-timer 3s linear forwards;
+                            }
+
+                            @keyframes progress-timer {
+                                from {
+                                    width: 100%;
+                                }
+                                to {
+                                    width: 0%;
+                                }
+                            }
+                        </style>
                         <input type="hidden" id="id_upaya" name="id_upaya">
                         <div class="mb-3">
                             <textarea 
@@ -225,7 +293,13 @@
                                     </button>
                                     <form method="POST" class="d-inline">
                                         <input type="hidden" name="id_upaya" value="<?=$upaya['_id']?>">
-                                        <button type="submit" name="delete_upaya" class="btn btn-outline-danger">Delete</button>
+                                        <button 
+                                            type="submit" 
+                                            name="delete_upaya" 
+                                            class="btn btn-outline-danger" 
+                                            onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                            Delete
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -351,6 +425,16 @@
             // Sembunyikan tombol batal
             document.getElementById('cancel-button').style.display = 'none';
         }
+        </script>
+        <script>
+            // Sembunyikan pesan flash setelah 5 detik
+            setTimeout(() => {
+                const flashMessage = document.getElementById('flash-message');
+                if (flashMessage) {
+                    flashMessage.classList.remove('show'); // Bootstrap class untuk menyembunyikan alert
+                    flashMessage.classList.add('d-none'); // Tambahkan class agar hilang dari tampilan
+                }
+            }, 3000); // 5000ms = 5 detik
         </script>
         <script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.bundle.min.js"></script>

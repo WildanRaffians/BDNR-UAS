@@ -28,7 +28,6 @@
         header("Location: login.php"); // Arahkan ke halaman login
         exit;
     }
-    include('function.php');
     // Bangun URL dengan parameter
     $urlSumberAir = "http://localhost:5000/api/sumber_air_lookup";
 

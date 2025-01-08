@@ -612,6 +612,76 @@ def login():
 
     return jsonify({"message": "Login successful.", "token": token}), 200
 
+@routes.route('/api/statistik', methods=['GET'])
+def get_statistik():
+    try:
+        province_id = request.args.get('province_id')
+        statistik_type = request.args.get('type')
+
+        if not province_id or not statistik_type:
+            return jsonify({"error": "Parameter province_id dan type diperlukan"}), 400
+
+        # Pipeline dasar untuk memfilter provinsi
+        pipeline = [
+            { "$lookup": { "from": "regencies", "localField": "id_kabupaten", "foreignField": "id_regency", "as": "kabupaten" } },
+            { "$unwind": "$kabupaten" },
+            { "$match": { "kabupaten.province_id": int(province_id) } }
+        ]
+
+        # Tambahkan grup dan hitung berdasarkan jenis statistik
+        if statistik_type == "kondisi":
+            pipeline.extend([
+                { "$group": { "_id": "$kondisi_sumber_air", "count": { "$sum": 1 } } },
+                { "$sort": { "_id": 1 } }
+            ])
+        elif statistik_type == "kelayakan":
+            pipeline.extend([
+                { "$group": { "_id": "$kelayakan", "count": { "$sum": 1 } } },
+                { "$sort": { "_id": 1 } }
+            ])
+        elif statistik_type == "warna":
+            pipeline.extend([
+                { "$group": { "_id": "$warna", "count": { "$sum": 1 } } },
+                { "$sort": { "_id": 1 } }
+            ])
+        elif statistik_type == "jenis_sumber_air":
+            pipeline.extend([
+                { "$lookup": { "from": "jenis_sumber_air", "localField": "id_jenis_sumber_air", "foreignField": "_id", "as": "jenis" } },
+                { "$unwind": "$jenis" },
+                { "$group": { "_id": "$jenis.nama_jenis_sumber_air", "count": { "$sum": 1 } } },
+                { "$sort": { "_id": 1 } }
+            ])
+        elif statistik_type == "ph":
+            pipeline.extend([
+                { "$group": { "_id": "$id_kabupaten", "avg_ph": { "$avg": "$ph" } } },
+                { "$lookup": { "from": "regencies", "localField": "_id", "foreignField": "id_regency", "as": "kabupaten" } },
+                { "$unwind": "$kabupaten" },
+                { "$project": { "_id": "$kabupaten.name", "avg_ph": 1 } },
+                { "$sort": { "_id": 1 } }
+            ])
+        elif statistik_type == "suhu":
+            pipeline.extend([
+                { "$group": { "_id": "$id_kabupaten", "avg_suhu": { "$avg": "$suhu" } } },
+                { "$lookup": { "from": "regencies", "localField": "_id", "foreignField": "id_regency", "as": "kabupaten" } },
+                { "$unwind": "$kabupaten" },
+                { "$project": { "_id": "$kabupaten.name", "avg_suhu": 1 } },
+                { "$sort": { "_id": 1 } }
+            ])
+        else:
+            return jsonify({"error": "Jenis statistik tidak valid"}), 400
+
+        # Jalankan pipeline
+        result = list(mongo.sumber_air.aggregate(pipeline))
+
+        # Format data untuk chart
+        labels = [item["_id"] for item in result]
+        data = [item.get("count", item.get("avg_ph", item.get("avg_suhu", 0))) for item in result]
+
+        return jsonify({"labels": labels, "data": data}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Endpoint logout
 # @routes.route('/logout', methods=['GET'])
 # def logout():
