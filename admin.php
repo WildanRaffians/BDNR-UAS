@@ -146,7 +146,7 @@ https://templatemo.com/tm-590-topic-listing
 
                         <div class="col-lg-5 col-12">
                             <div class="topics-detail-block bg-white shadow-lg">
-                                <img src="images/sumber/c1.jpg" class="topics-detail-block-image img-fluid">
+                                <img src="loginpack/images/aerr3.jpg" class="topics-detail-block-image img-fluid">
                             </div>
                         </div>
 
